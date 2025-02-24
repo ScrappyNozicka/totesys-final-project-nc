@@ -50,7 +50,7 @@ black:
 
 ## Install coverage
 coverage:
-	$(call execute_in_env, $(PIP) install coverage)
+	$(call execute_in_env, $(PIP) install pytest-cov)
 
 ## Install pip-audit
 pip-audit:
@@ -79,13 +79,12 @@ unit-test:
 
 ## Run the coverage check
 check-coverage:
-	$(call execute_in_env, PYTHONPATH=${PYTHONPATH} pytest --cov=src test/)
+	$(call execute_in_env, PYTHONPATH=${PYTHONPATH} pytest --cov=src --cov-report=term-missing --cov-report=html)
 
 ## Run pip audit
-pip-audit:
-	$(call execute_in_env, pip-audit  ./src/*/*/*.py ./test/*/*/*.py)
+run-pip-audit:
+	$(call execute_in_env, pip-audit)
 
 
 ## Run all checks
-# run-checks: security-test run-black unit-test pip-audit run-flake8 check-coverage pip-audit
-run-checks: security-test run-black unit-test
+run-checks: security-test run-black unit-test check-coverage run-flake8 run-pip-audit
