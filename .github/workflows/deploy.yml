@@ -22,4 +22,4 @@ jobs:
       - name: Create environment
         run: make requirements
       - name: build and run checks
-        # run: make run-checks
+        run: make run-checks
