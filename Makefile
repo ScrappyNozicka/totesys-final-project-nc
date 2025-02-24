@@ -52,8 +52,12 @@ black:
 coverage:
 	$(call execute_in_env, $(PIP) install coverage)
 
+## Install pip-audit
+pip-audit:
+	$(call execute_in_env, $(PIP) install pip-audit)	
+
 ## Set up dev requirements (bandit, black & coverage)
-dev-setup: bandit black coverage
+dev-setup: bandit black coverage pip-audit
 
 # Build / Run
 
@@ -77,5 +81,11 @@ unit-test:
 check-coverage:
 	$(call execute_in_env, PYTHONPATH=${PYTHONPATH} pytest --cov=src test/)
 
+## Run pip audit
+pip-audit:
+	$(call execute_in_env, pip-audit  ./src/*/*/*.py ./test/*/*/*.py)
+
+
 ## Run all checks
-run-checks: security-test run-black unit-test check-coverage run-flake8
+# run-checks: security-test run-black unit-test pip-audit run-flake8 check-coverage pip-audit
+run-checks: security-test run-black unit-test
