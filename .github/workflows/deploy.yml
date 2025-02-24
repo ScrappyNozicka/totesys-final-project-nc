@@ -21,5 +21,7 @@
 #           python-version: '3.12.6'
 #       - name: Create environment
 #         run: make requirements
+#       - name: Run dev-setup
+#         run: make dev-setup
 #       - name: build and run checks
 #         run: make run-checks
