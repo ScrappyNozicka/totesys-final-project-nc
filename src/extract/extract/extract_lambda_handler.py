@@ -44,9 +44,9 @@ def lambda_handler(event, context):
 
         s3_key = f"data/{time}.json"
 
-        s3.put_object(Bucket=our_bucket, Key=s3_key, Body=data)
+        s3.put_object(Bucket=ourbucket, Key=s3_key, Body=data)
 
-        print(f"Successfully uploaded to S3://{our_bucket}/{s3_key}")
+        print(f"Successfully uploaded to S3://{ourbucket}/{s3_key}")
 
         return {
             'statusCode': 200,
