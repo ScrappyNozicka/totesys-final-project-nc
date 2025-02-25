@@ -50,7 +50,7 @@ black:
 
 ## Install coverage
 coverage:
-	$(call execute_in_env, $(PIP) install coverage)
+	$(call execute_in_env, $(PIP) install pytest-cov)
 
 ## Set up dev requirements (bandit, black & coverage)
 dev-setup: bandit black coverage
