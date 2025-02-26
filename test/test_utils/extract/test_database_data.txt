@@ -1,0 +1,112 @@
+               List of relations
+ Schema |        Name        | Type  |  Owner  
+--------+--------------------+-------+---------
+ public | _prisma_migrations | table | totesys
+ public | address            | table | totesys
+ public | counterparty       | table | totesys
+ public | currency           | table | totesys
+ public | department         | table | totesys
+ public | design             | table | totesys
+ public | payment            | table | totesys
+ public | payment_type       | table | totesys
+ public | purchase_order     | table | totesys
+ public | sales_order        | table | totesys
+ public | staff              | table | totesys
+ public | transaction        | table | totesys
+(12 rows)
+address table:
+  address_id |   address_line_1   | address_line_2 |   district   |       city        | postal_code |        country         |    phone    |       created_at        |      last_updated       
+------------+--------------------+----------------+--------------+-------------------+-------------+------------------------+-------------+-------------------------+-------------------------
+          1 | 6826 Herzog Via    |                | Avon         | New Patienceburgh | 28441       | Turkey                 | 1803 637401 | 2022-11-03 14:20:49.962 | 2022-11-03 14:20:49.962
+          2 | 179 Alexie Cliffs  |                |              | Aliso Viejo       | 99305-7380  | San Marino             | 9621 880720 | 2022-11-03 14:20:49.962 | 2022-11-03 14:20:49.962
+          3 | 148 Sincere Fort   |                |              | Lake Charles      | 89360       | Samoa                  | 0730 783349 | 2022-11-03 14:20:49.962 | 2022-11-03 14:20:49.962
+          4 | 6102 Rogahn Skyway |                | Bedfordshire | Olsonside         | 47518       | Republic of Korea      | 1239 706295 | 2022-11-03 14:20:49.962 | 2022-11-03 14:20:49.962
+          5 | 34177 Upton Track  |                |              | Fort Shadburgh    | 55993-8850  | Bosnia and Herzegovina | 0081 009772 | 2022-11-03 14:20:49.962 | 2022-11-03 14:20:49.962
+(5 rows)
+ counterparty table:
+ counterparty_id |   counterparty_legal_name   | legal_address_id | commercial_contact |    delivery_contact     |       created_at        |      last_updated       
+-----------------+-----------------------------+------------------+--------------------+-------------------------+-------------------------+-------------------------
+               1 | Fahey and Sons              |               15 | Micheal Toy        | Mrs. Lucy Runolfsdottir | 2022-11-03 14:20:51.563 | 2022-11-03 14:20:51.563
+               2 | Leannon, Predovic and Morar |               28 | Melba Sanford      | Jean Hane III           | 2022-11-03 14:20:51.563 | 2022-11-03 14:20:51.563
+               3 | Armstrong Inc               |                2 | Jane Wiza          | Myra Kovacek            | 2022-11-03 14:20:51.563 | 2022-11-03 14:20:51.563
+               4 | Kohler Inc                  |               29 | Taylor Haag        | Alfredo Cassin II       | 2022-11-03 14:20:51.563 | 2022-11-03 14:20:51.563
+               5 | Frami, Yundt and Macejkovic |               22 | Homer Mitchell     | Ivan Balistreri         | 2022-11-03 14:20:51.563 | 2022-11-03 14:20:51.563
+(5 rows)
+currency table:
+ currency_id | currency_code |       created_at        |      last_updated       
+-------------+---------------+-------------------------+-------------------------
+           1 | GBP           | 2022-11-03 14:20:49.962 | 2022-11-03 14:20:49.962
+           2 | USD           | 2022-11-03 14:20:49.962 | 2022-11-03 14:20:49.962
+           3 | EUR           | 2022-11-03 14:20:49.962 | 2022-11-03 14:20:49.962
+(3 rows)
+department table:
+ department_id | department_name |  location  |    manager     |       created_at        |      last_updated       
+---------------+-----------------+------------+----------------+-------------------------+-------------------------
+             1 | Sales           | Manchester | Richard Roma   | 2022-11-03 14:20:49.962 | 2022-11-03 14:20:49.962
+             2 | Purchasing      | Manchester | Naomi Lapaglia | 2022-11-03 14:20:49.962 | 2022-11-03 14:20:49.962
+             3 | Production      | Leeds      | Chester Ming   | 2022-11-03 14:20:49.962 | 2022-11-03 14:20:49.962
+             4 | Dispatch        | Leds       | Mark Hanna     | 2022-11-03 14:20:49.962 | 2022-11-03 14:20:49.962
+             5 | Finance         | Manchester | Jordan Belfort | 2022-11-03 14:20:49.962 | 2022-11-03 14:20:49.962
+(5 rows)
+design table:
+ design_id |       created_at        | design_name | file_location |         file_name          |      last_updated       
+-----------+-------------------------+-------------+---------------+----------------------------+-------------------------
+         8 | 2022-11-03 14:20:49.962 | Wooden      | /usr          | wooden-20220717-npgz.json  | 2022-11-03 14:20:49.962
+        51 | 2023-01-12 18:50:09.935 | Bronze      | /private      | bronze-20221024-4dds.json  | 2023-01-12 18:50:09.935
+        69 | 2023-02-07 17:31:10.093 | Bronze      | /lost+found   | bronze-20230102-r904.json  | 2023-02-07 17:31:10.093
+        16 | 2022-11-22 15:02:10.226 | Soft        | /System       | soft-20211001-cjaz.json    | 2022-11-22 15:02:10.226
+        54 | 2023-01-16 09:14:09.775 | Plastic     | /usr/ports    | plastic-20221206-bw3l.json | 2023-01-16 09:14:09.775
+(5 rows)
+payment table:
+ payment_id |       created_at        |      last_updated       | transaction_id | counterparty_id | payment_amount | currency_id | payment_type_id | paid | payment_date | company_ac_number | counterparty_ac_number 
+------------+-------------------------+-------------------------+----------------+-----------------+----------------+-------------+-----------------+------+--------------+-------------------+------------------------
+          2 | 2022-11-03 14:20:52.187 | 2022-11-03 14:20:52.187 |              2 |              15 |      552548.62 |           2 |               3 | f    | 2022-11-04   |          67305075 |               31622269
+          3 | 2022-11-03 14:20:52.186 | 2022-11-03 14:20:52.186 |              3 |              18 |      205952.22 |           3 |               1 | f    | 2022-11-03   |          81718079 |               47839086
+          5 | 2022-11-03 14:20:52.187 | 2022-11-03 14:20:52.187 |              5 |              17 |       57067.20 |           2 |               3 | f    | 2022-11-06   |          66213052 |               91659548
+          8 | 2022-11-03 14:20:52.186 | 2022-11-03 14:20:52.186 |              8 |               2 |      254007.12 |           3 |               3 | f    | 2022-11-05   |          32948439 |               90135525
+         16 | 2022-11-04 15:42:10.886 | 2022-11-04 15:42:10.886 |             16 |              15 |      250459.52 |           2 |               1 | f    | 2022-11-05   |          34445327 |               71673373
+(5 rows)
+payment_type table:
+ payment_type_id | payment_type_name |       created_at        |      last_updated       
+-----------------+-------------------+-------------------------+-------------------------
+               1 | SALES_RECEIPT     | 2022-11-03 14:20:49.962 | 2022-11-03 14:20:49.962
+               2 | SALES_REFUND      | 2022-11-03 14:20:49.962 | 2022-11-03 14:20:49.962
+               3 | PURCHASE_PAYMENT  | 2022-11-03 14:20:49.962 | 2022-11-03 14:20:49.962
+               4 | PURCHASE_REFUND   | 2022-11-03 14:20:49.962 | 2022-11-03 14:20:49.962
+(4 rows)
+purchase_order table:
+ purchase_order_id |       created_at        |      last_updated       | staff_id | counterparty_id | item_code | item_quantity | item_unit_price | currency_id | agreed_delivery_date | agreed_payment_date | agreed_delivery_location_id 
+-------------------+-------------------------+-------------------------+----------+-----------------+-----------+---------------+-----------------+-------------+----------------------+---------------------+-----------------------------
+                 1 | 2022-11-03 14:20:52.187 | 2022-11-03 14:20:52.187 |       12 |              11 | ZDOI5EA   |           371 |          361.39 |           2 | 2022-11-09           | 2022-11-07          |                           6
+                 2 | 2022-11-03 14:20:52.186 | 2022-11-03 14:20:52.186 |       20 |              17 | QLZLEXR   |           286 |          199.04 |           2 | 2022-11-04           | 2022-11-07          |                           8
+                 5 | 2022-11-03 14:20:52.186 | 2022-11-03 14:20:52.186 |       18 |               2 | I9MET53   |           316 |          803.82 |           3 | 2022-11-10           | 2022-11-05          |                           2
+                62 | 2022-11-30 08:02:10.683 | 2022-11-30 08:02:10.683 |       13 |              12 | QKQQ9IS   |           597 |          714.89 |           2 | 2022-12-03           | 2022-12-03          |                          11
+                 6 | 2022-11-04 11:59:09.99  | 2022-11-04 11:59:09.99  |       11 |               5 | DAOECK5   |           926 |          155.70 |           2 | 2022-11-04           | 2022-11-08          |                          24
+(5 rows)
+sales_order table:
+ sales_order_id |       created_at        |      last_updated       | design_id | staff_id | counterparty_id | units_sold | unit_price | currency_id | agreed_delivery_date | agreed_payment_date | agreed_delivery_location_id 
+----------------+-------------------------+-------------------------+-----------+----------+-----------------+------------+------------+-------------+----------------------+---------------------+-----------------------------
+              2 | 2022-11-03 14:20:52.186 | 2022-11-03 14:20:52.186 |         3 |       19 |               8 |      42972 |       3.94 |           2 | 2022-11-07           | 2022-11-08          |                           8
+              3 | 2022-11-03 14:20:52.188 | 2022-11-03 14:20:52.188 |         4 |       10 |               4 |      65839 |       2.91 |           3 | 2022-11-06           | 2022-11-07          |                          19
+              4 | 2022-11-03 14:20:52.188 | 2022-11-03 14:20:52.188 |         4 |       10 |              16 |      32069 |       3.89 |           2 | 2022-11-05           | 2022-11-07          |                          15
+              5 | 2022-11-03 14:20:52.186 | 2022-11-03 14:20:52.186 |         7 |       18 |               4 |      49659 |       2.41 |           3 | 2022-11-05           | 2022-11-08          |                          25
+              6 | 2022-11-04 11:37:10.341 | 2022-11-04 11:37:10.341 |         3 |       13 |              18 |      83908 |       3.99 |           3 | 2022-11-04           | 2022-11-07          |                          17
+(5 rows)
+staff table:
+ staff_id | first_name | last_name | department_id |           email_address           |       created_at        |      last_updated       
+----------+------------+-----------+---------------+-----------------------------------+-------------------------+-------------------------
+        1 | Jeremie    | Franey    |             2 | jeremie.franey@terrifictotes.com  | 2022-11-03 14:20:51.563 | 2022-11-03 14:20:51.563
+        2 | Deron      | Beier     |             6 | deron.beier@terrifictotes.com     | 2022-11-03 14:20:51.563 | 2022-11-03 14:20:51.563
+        3 | Jeanette   | Erdman    |             6 | jeanette.erdman@terrifictotes.com | 2022-11-03 14:20:51.563 | 2022-11-03 14:20:51.563
+        4 | Ana        | Glover    |             3 | ana.glover@terrifictotes.com      | 2022-11-03 14:20:51.563 | 2022-11-03 14:20:51.563
+        5 | Magdalena  | Zieme     |             8 | magdalena.zieme@terrifictotes.com | 2022-11-03 14:20:51.563 | 2022-11-03 14:20:51.563
+(5 rows)
+transaction table:
+ transaction_id | transaction_type | sales_order_id | purchase_order_id |       created_at        |      last_updated       
+----------------+------------------+----------------+-------------------+-------------------------+-------------------------
+              1 | PURCHASE         |                |                 2 | 2022-11-03 14:20:52.186 | 2022-11-03 14:20:52.186
+              2 | PURCHASE         |                |                 3 | 2022-11-03 14:20:52.187 | 2022-11-03 14:20:52.187
+              3 | SALE             |              1 |                   | 2022-11-03 14:20:52.186 | 2022-11-03 14:20:52.186
+              4 | PURCHASE         |                |                 1 | 2022-11-03 14:20:52.187 | 2022-11-03 14:20:52.187
+              5 | PURCHASE         |                |                 4 | 2022-11-03 14:20:52.187 | 2022-11-03 14:20:52.187
+(5 rows)
