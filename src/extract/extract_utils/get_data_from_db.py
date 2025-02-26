@@ -3,8 +3,6 @@ from pprint import pprint
 from pg8000.exceptions import DatabaseError
 from datetime import timedelta
 
-from src.02_transform.test import test
-
 class ConnectionError(Exception):
     pass
 
