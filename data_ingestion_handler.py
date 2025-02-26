@@ -9,10 +9,17 @@ class DataIngestionHandler:
         self.s3_handler = S3FileHandler()
         self.processor = ToteSysProcessor()
 
-    def process_and_upload(self, totesys_data):
+    def process_and_upload(self, totesys_data: dict[list[dict]]):
+        """
+        Handler of raw data from ToteSys DataBase. Saves data into S3 bucket specified by environment variable
+
+        Args:
+            totesys_data (dict[list[dict]]): Data from ToteSys DB
+        """
         table_names = self.processor.get_table_names(totesys_data)
 
         for table_name in table_names:
+            # get list of rows in current table
             table_data = totesys_data[table_name]
 
             for row in table_data:
