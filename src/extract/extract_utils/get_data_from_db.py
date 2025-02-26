@@ -1,4 +1,4 @@
-from src.extract.extract_utils.connection import create_conn
+from src.extract.connection import create_conn, close_db
 from pprint import pprint
 from pg8000.exceptions import DatabaseError
 from datetime import timedelta
