@@ -6,8 +6,6 @@ import pytest
 import datetime
 
 
-
-
 class MockingTestTestCase(unittest.TestCase):
     @patch("src.extract.extract_utils.get_data_from_db.create_conn")
     def test_get_data_from_db_return_all_tables_as_expected(self, mock_cr_con):
@@ -269,7 +267,14 @@ class MockingTestTestCase(unittest.TestCase):
 
         mock_connection_db.run.return_value = [
             (1, "Sales", "Manchester", "Richard Roma", mock_time, mock_time),
-            (2, "Purchasing", "Manchester", "Naomi Lapaglia", mock_time, mock_time),
+            (
+                2,
+                "Purchasing",
+                "Manchester",
+                "Naomi Lapaglia",
+                mock_time,
+                mock_time,
+            ),
             (3, "Production", "Leeds", "Chester Ming", mock_time, mock_time),
         ]
 
@@ -312,7 +317,9 @@ class MockingTestTestCase(unittest.TestCase):
         assert get_data_from_db()["department"] == result
 
     @patch("src.extract.extract_utils.get_data_from_db.create_conn")
-    def test_get_data_from_db_return_design_table_values_as_expected(self, mock_cr_con):
+    def test_get_data_from_db_return_design_table_values_as_expected(
+        self, mock_cr_con
+    ):
 
         mock_connection_db = MagicMock()
         mock_cr_con.return_value = mock_connection_db
@@ -787,7 +794,9 @@ class MockingTestTestCase(unittest.TestCase):
         assert get_data_from_db()["sales_order"] == result
 
     @patch("src.extract.extract_utils.get_data_from_db.create_conn")
-    def test_get_data_from_db_return_staff_table_values_as_expected(self, mock_cr_con):
+    def test_get_data_from_db_return_staff_table_values_as_expected(
+        self, mock_cr_con
+    ):
 
         mock_connection_db = MagicMock()
         mock_cr_con.return_value = mock_connection_db

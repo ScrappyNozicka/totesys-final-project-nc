@@ -1,12 +1,8 @@
 from src.extract.connection import create_conn
 
 
-
-
 class ConnectionError(Exception):
     pass
-
-
 
 
 def get_data_from_db(s3_timestamp=None):
@@ -50,7 +46,9 @@ def get_data_from_db(s3_timestamp=None):
             query_str = f"SELECT * FROM {table}" + query_minutes_str
             query_result = db.run(query_str)
             columns = [col["name"] for col in db.columns]
-            table_data = [dict(zip(columns, result)) for result in query_result]
+            table_data = [
+                dict(zip(columns, result)) for result in query_result
+            ]
             for item in table_data:
                 item["created_at"] = item["created_at"].strftime(
                     "%Y-%m-%d--%H-%M-%S-%f"
