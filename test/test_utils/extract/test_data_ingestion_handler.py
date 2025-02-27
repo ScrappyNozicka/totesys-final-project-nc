@@ -1,6 +1,6 @@
 import pytest
 import json
-from data_ingestion_handler import DataIngestionHandler
+from src.extract.extract_utils.data_ingestion_handler import DataIngestionHandler
 
 @pytest.fixture
 def sample_data():
@@ -18,7 +18,7 @@ def handler():
 def test_upload_file_call_count(mocker, handler, sample_data):
     """Test if upload_file is called the correct number of times."""
     # Mock the S3Handler upload_file method
-    mock_upload_file = mocker.patch("s3_file_handler.S3FileHandler.upload_file")
+    mock_upload_file = mocker.patch("src.extract.extract_utils.s3_file_handler.S3FileHandler.upload_file")
     mock_upload_file.return_value = {"Success": "File uploaded"}
 
     handler.process_and_upload(sample_data)
@@ -29,7 +29,7 @@ def test_upload_file_call_count(mocker, handler, sample_data):
 def test_upload_file_arguments(mocker, handler, sample_data):
     """Test if upload_file is called with the correct arguments."""
     # Mock the S3Handler upload_file method
-    mock_upload_file = mocker.patch("s3_file_handler.S3FileHandler.upload_file")
+    mock_upload_file = mocker.patch("src.extract.extract_utils.s3_file_handler.S3FileHandler.upload_file")
     mock_upload_file.return_value = {"Success": "File uploaded"}
 
     handler.process_and_upload(sample_data)

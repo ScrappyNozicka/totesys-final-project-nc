@@ -1,6 +1,6 @@
 import json
-from totesys_processor import ToteSysProcessor
-from s3_file_handler import S3FileHandler
+from src.extract.extract_utils.totesys_processor import ToteSysProcessor
+from src.extract.extract_utils.s3_file_handler import S3FileHandler
 
 class DataIngestionHandler:
     """Main class to process ToteSys data and store it in S3."""

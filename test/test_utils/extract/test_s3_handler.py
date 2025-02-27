@@ -2,7 +2,7 @@ import pytest
 from moto import mock_aws
 import boto3
 import os
-from s3_file_handler import S3FileHandler  # Replace with the actual path to your module
+from src.extract.extract_utils.s3_file_handler import S3FileHandler
 
 @pytest.fixture
 def mock_aws_setup():
