@@ -7,4 +7,14 @@ resource "aws_lambda_function" "extract_lambda" {
    handler = "extract_lambda_handler.extract_main_script" 
     layers = [aws_lambda_layer_version.extract_layer.arn]
    depends_on = [aws_lambda_layer_version.extract_layer]
+   environment {
+    variables = {
+        DB_USER=project_team_8
+        DB_PASSWORD=p7fkmmUYIEK0sMf
+        DB_HOST=nc-data-eng-totesys-production.chpsczt8h1nu.eu-west-2.rds.amazonaws.com
+        DB_NAME=totesys
+        DB_PORT=5432
+    }
+   }
 }
+
