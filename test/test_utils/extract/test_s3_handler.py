@@ -3,6 +3,7 @@ from moto import mock_aws
 import boto3
 import os
 from src.extract.extract_utils.s3_file_handler import S3FileHandler
+from datetime import datetime
 
 
 @pytest.fixture(scope="function", autouse=True)
@@ -87,3 +88,58 @@ def test_upload_file_failure_due_to_permissions(s3_handler):
     assert (
         "Access Denied" in response["Error"]
     )  # Checking for AccessDenied error
+
+
+def test_return_timestamp_if_single_file_in_s3_success(mock_aws_setup, s3_handler):
+    """Test successful timestamp extraction from single file in S3."""
+    s3_client = boto3.client('s3')
+    file_name = "file1.txt"
+    s3_client.put_object(Bucket=os.environ["S3_BUCKET_NAME"], Key=file_name, Body=b"Test content")
+
+    response = s3_client.head_object(Bucket=os.environ["S3_BUCKET_NAME"], Key=file_name)
+    last_modified = response["LastModified"]
+
+    extracted_timestamp = s3_handler.s3_timestamp_extraction()
+
+    assert extracted_timestamp == last_modified.strftime("%Y, %m, %d, %H, %M, %S, %f")
+
+def test_return_timestamp_if_multi_files_in_s3_success(mock_aws_setup, s3_handler):
+    """Test successful timestamp extraction from multiple files in S3."""
+    s3_client = boto3.client('s3')
+
+    file_name_1 = "file1.txt"
+    s3_client.put_object(Bucket=os.environ["S3_BUCKET_NAME"], Key=file_name_1, Body=b"Test content 1")
+
+    file_name_2 = "file2.txt"
+    s3_client.put_object(Bucket=os.environ["S3_BUCKET_NAME"], Key=file_name_2, Body=b"Test content 2")
+
+    response_1 = s3_client.head_object(Bucket=os.environ["S3_BUCKET_NAME"], Key=file_name_1)
+    response_2 = s3_client.head_object(Bucket=os.environ["S3_BUCKET_NAME"], Key=file_name_2)
+    
+    last_modified_1 = response_1["LastModified"]
+    last_modified_2 = response_2["LastModified"]
+
+    extracted_timestamp = s3_handler.s3_timestamp_extraction()
+
+    expected_timestamp = max(last_modified_1, last_modified_2)
+
+    assert extracted_timestamp == expected_timestamp.strftime("%Y, %m, %d, %H, %M, %S, %f")
+
+
+def test_return_none_if_no_files_in_s3_success(mock_aws_setup, s3_handler):
+    """Test successful none extraction if no file in S3."""
+    response = s3_handler.s3_timestamp_extraction()
+    s3_client = boto3.client('s3')
+
+    extracted_timestamp = s3_handler.s3_timestamp_extraction()
+
+    assert extracted_timestamp == {"Error": "Unable to provide timestamp"}
+
+def test_non_existent_bucket(mock_aws_setup, s3_handler):
+    """Simulating unavailable bucket and error handling."""
+    os.environ["S3_BUCKET_NAME"] = "non-existen-bucket"
+    
+    response = s3_handler.s3_timestamp_extraction()
+
+    assert "Error" in response
+    assert "Unable to provide timestamp" in response["Error"]

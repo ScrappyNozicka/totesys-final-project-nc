@@ -45,3 +45,19 @@ class S3FileHandler:
             }
         except Exception as e:
             return {"Error": str(e)}
+
+
+    def s3_timestamp_extraction(self):
+        try:
+            s3_paginator = self.s3_client.get_paginator('list_objects_v2')
+            s3_iterator = s3_paginator.paginate(Bucket=self.bucket_name)
+            latest = None
+            for page in s3_iterator:
+                if "Contents" in page:
+                    latest2 = max(page['Contents'], key=lambda x: x['LastModified'])
+                    if latest is None or latest2['LastModified'] > latest['LastModified']:
+                        latest = latest2
+            timestamp = latest['LastModified']
+            return timestamp.strftime("%Y, %m, %d, %H, %M, %S, %f")
+        except Exception as e:
+            return {"Error": "Unable to provide timestamp"}
