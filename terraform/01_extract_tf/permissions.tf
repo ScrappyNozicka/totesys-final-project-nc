@@ -33,7 +33,7 @@ data "aws_iam_policy_document" "s3policy-doc" {
             "s3:GetObjectVersion",
             "s3:ListMultipartUploadParts"
         ]
-         resources = ["arn:aws:s3:::${BUCKET_NAME}", "arn:aws:s3:::${BUCKET_NAME}/*" 
+         resources = ["arn:aws:s3:::ingestionbucketkettslough", "arn:aws:s3:::ingestionbucketkettslough/*" 
          ]
     }
 }
@@ -56,4 +56,24 @@ resource "aws_lambda_permission" "allow_eventbridge" {
   function_name = aws_lambda_function.extract_lambda.function_name
   principal     = "events.amazonaws.com"
   source_arn    = aws_cloudwatch_event_rule.lambda_schedule.arn
+}
+
+resource "aws_iam_policy" "lambda_logging_cloudwatch" {
+  name        = "lambda_logging_policy"
+  description = "allows lambda function to write to cloudwatch"
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action   = "logs:*"
+        Resource = "*"
+        Effect   = "Allow"
+      }
+    ]
+  })
+}
+resource "aws_iam_policy_attachment" "lambda_logging_attach" {
+  name       = "lambda_logging_attach"
+  policy_arn = "arn:aws:iam::aws:policy/<lambda_logging_cloudwatch>"
+  roles      = [aws_iam_role.extract_iam.name]
 }

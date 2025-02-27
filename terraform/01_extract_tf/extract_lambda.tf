@@ -1,9 +1,10 @@
 
 data "archive_file" "lambda_package" {
   type        = "zip"
-  source_dir  = "${path.module}/lambda_code"  # Folder where Lambda code is stored
-  output_path = "${path.module}/lambda_function.zip"
+  source_dir  = "${path.module}/lambda_code" 
+  output_path = "${path.module}/extract_lambda.zip"
 }
+
 
 
 resource "aws_lambda_function" "extract_lambda" {
@@ -17,10 +18,10 @@ resource "aws_lambda_function" "extract_lambda" {
 
     
     layers = [
-        aws_lambda_layer_version.lambda_layer.arn
+        aws_lambda_layer_version.shared_layer.arn
     ]
     depends_on = [
-        aws_lambda_layer_version.lambda_layer
+        aws_lambda_layer_version.shared_layer
     ]
 }
 
