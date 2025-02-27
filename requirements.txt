@@ -11,4 +11,3 @@ pytest
 python-dotenv  # Load environment variables from .env file
 pydantic  # Data validation
 flake8
-moto
