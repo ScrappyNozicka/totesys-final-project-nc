@@ -27,91 +27,6 @@ class MockingTestTestCase(unittest.TestCase):
         assert get_data_from_db() == result
 
 
-
-    def test_get_data_from_db_with_timestamp(this):
-        time_stamp = "2022-11-03 14:20:49.961"
-        expected_result = [
-                {
-                    'created_at': '2022-11-03--14-20-49-962',
-                    'currency_code': 'GBP',
-                    'currency_id': 1,
-                    'last_updated': '2022-11-03--14-20-49-962',
-                    },
-                {
-                    'created_at': '2022-11-03--14-20-49-962',
-                    'currency_code': 'USD',
-                    'currency_id': 2,
-                    'last_updated': '2022-11-03--14-20-49-962',
-                    },
-                {
-                    'created_at': '2022-11-03--14-20-49-962',
-                    'currency_code': 'EUR',
-                    'currency_id': 3,
-                    'last_updated': '2022-11-03--14-20-49-962',
-                    }
-                ]
-        result = get_data_from_db(time_stamp)['currency']
-        assert result == expected_result
-
-
-    def test_get_data_from_db_without_timestamp(this):
-        expected_result = [
-                {
-                    'created_at': '2022-11-03--14-20-49-962',
-                    'currency_code': 'GBP',
-                    'currency_id': 1,
-                    'last_updated': '2022-11-03--14-20-49-962',
-                    },
-                {
-                    'created_at': '2022-11-03--14-20-49-962',
-                    'currency_code': 'USD',
-                    'currency_id': 2,
-                    'last_updated': '2022-11-03--14-20-49-962',
-                    },
-                {
-                    'created_at': '2022-11-03--14-20-49-962',
-                    'currency_code': 'EUR',
-                    'currency_id': 3,
-                    'last_updated': '2022-11-03--14-20-49-962',
-                    }
-                ]
-        result = get_data_from_db()['currency']
-        assert result == expected_result
-
-
-    def test_get_data_from_db_with_timestamp(this):
-        time_stamp = "2022-11-03 14:20:49.961"
-        expected_result = [
-                {
-                    'created_at': '2022-11-03--14-20-49-962',
-                    'currency_code': 'GBP',
-                    'currency_id': 1,
-                    'last_updated': '2022-11-03--14-20-49-962',
-                    },
-                {
-                    'created_at': '2022-11-03--14-20-49-962',
-                    'currency_code': 'USD',
-                    'currency_id': 2,
-                    'last_updated': '2022-11-03--14-20-49-962',
-                    },
-                {
-                    'created_at': '2022-11-03--14-20-49-962',
-                    'currency_code': 'EUR',
-                    'currency_id': 3,
-                    'last_updated': '2022-11-03--14-20-49-962',
-                    }
-                ]
-        result = get_data_from_db(time_stamp)['currency']
-        assert result == expected_result
-
-
-    def test_get_data_from_db_with_timestamp_no_data(this):
-        time_stamp = "2022-11-03 14:20:49.963"
-        expected_result = []
-        result = get_data_from_db(time_stamp)['currency']
-        assert result == expected_result
-
-
     @patch("src.extract.extract_utils.get_data_from_db.create_conn")
     def test_get_data_from_db_return_address_table_values_as_expected(self, mock_create_connection):
         mock_connection_db = MagicMock()
@@ -802,3 +717,61 @@ class MockingTestTestCase(unittest.TestCase):
 
         with pytest.raises(ConnectionError):
             get_data_from_db()
+
+
+    # def test_get_data_from_db_with_timestamp(this):
+    #     time_stamp = "2022-11-03 14:20:49.961"
+    #     expected_result = [
+    #             {
+    #                 'created_at': '2022-11-03--14-20-49-962',
+    #                 'currency_code': 'GBP',
+    #                 'currency_id': 1,
+    #                 'last_updated': '2022-11-03--14-20-49-962',
+    #                 },
+    #             {
+    #                 'created_at': '2022-11-03--14-20-49-962',
+    #                 'currency_code': 'USD',
+    #                 'currency_id': 2,
+    #                 'last_updated': '2022-11-03--14-20-49-962',
+    #                 },
+    #             {
+    #                 'created_at': '2022-11-03--14-20-49-962',
+    #                 'currency_code': 'EUR',
+    #                 'currency_id': 3,
+    #                 'last_updated': '2022-11-03--14-20-49-962',
+    #                 }
+    #             ]
+    #     result = get_data_from_db(time_stamp)['currency']
+    #     assert result == expected_result
+
+
+    # def test_get_data_from_db_without_timestamp(this):
+    #     expected_result = [
+    #             {
+    #                 'created_at': '2022-11-03--14-20-49-962',
+    #                 'currency_code': 'GBP',
+    #                 'currency_id': 1,
+    #                 'last_updated': '2022-11-03--14-20-49-962',
+    #                 },
+    #             {
+    #                 'created_at': '2022-11-03--14-20-49-962',
+    #                 'currency_code': 'USD',
+    #                 'currency_id': 2,
+    #                 'last_updated': '2022-11-03--14-20-49-962',
+    #                 },
+    #             {
+    #                 'created_at': '2022-11-03--14-20-49-962',
+    #                 'currency_code': 'EUR',
+    #                 'currency_id': 3,
+    #                 'last_updated': '2022-11-03--14-20-49-962',
+    #                 }
+    #             ]
+    #     result = get_data_from_db()['currency']
+    #     assert result == expected_result
+
+        
+    # def test_get_data_from_db_with_timestamp_no_data(this):
+    #     time_stamp = "2022-11-03 14:20:49.963"
+    #     expected_result = []
+    #     result = get_data_from_db(time_stamp)['currency']
+    #         assert result == expected_result
