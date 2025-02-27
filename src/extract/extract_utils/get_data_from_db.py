@@ -1,5 +1,4 @@
 from src.extract.connection import create_conn
-from datetime import timedelta
 
 
 class ConnectionError(Exception):
@@ -8,10 +7,12 @@ class ConnectionError(Exception):
 
 def get_data_from_db(s3_timestamp=None):
     """Handles data extraction from the initial data-source database.
-    On reception of the data we pass them on for processing and selection based on the datetime datastamp.
+    On reception of the data we pass them on for processing.
+    Selection based on the datetime datastamp initiated.
     Args:
         database connection:
-            import database connection func and database close func from different file provided by other members of the team
+            import database connection func
+            import database close func
         S3 timestamp:
             year to milisecond using datetime
             default to none
@@ -38,14 +39,16 @@ def get_data_from_db(s3_timestamp=None):
         ]
         result = {}
         query_minutes_str = ";"
-        if s3_timestamp != None:
+        if s3_timestamp is not None:
             query_minutes_str = f""" where created_at > '{s3_timestamp}'
                              or last_updated > '{s3_timestamp}';"""
         for table in table_names:
             query_str = f"SELECT * FROM {table}" + query_minutes_str
             query_result = db.run(query_str)
             columns = [col["name"] for col in db.columns]
-            table_data = [dict(zip(columns, result)) for result in query_result]
+            table_data = [
+                dict(zip(columns, result)) for result in query_result
+                ]
             for item in table_data:
                 item["created_at"] = item["created_at"].strftime(
                     "%Y-%m-%d--%H-%M-%S-%f"
@@ -59,4 +62,3 @@ def get_data_from_db(s3_timestamp=None):
     except Exception as err:
         print("Error: Database connection not found", err)
         raise ConnectionError
-
