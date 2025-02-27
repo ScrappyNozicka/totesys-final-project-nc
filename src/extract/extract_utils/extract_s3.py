@@ -16,3 +16,5 @@ def creates3ingestion(our_bucket_name):
     versioning.enable()
 
     return bucket
+
+creates3ingestion("ingestionbucketkettslough")
