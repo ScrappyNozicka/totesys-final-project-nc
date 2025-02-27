@@ -1,0 +1,38 @@
+{"address":[
+    {
+        "address_id": 1,
+        "address_line_1": "6826 Herzog Via",
+        "address_line_2": "",
+        "city": "New Patienceburgh",
+        "country": "Turkey",
+        "created_at": "2022-11-03 14:20:49.962",
+        "district": "Avon",
+        "last_updated": "2022-11-03 14:20:49.962",
+        "phone": 1803637401,
+        "postal_code": "28441"
+    },
+    {
+        "address_id": 2,
+        "address_line_1": "179 Alexie Cliffs ",
+        "address_line_2": "",
+        "city": "Aliso Viejo",
+        "country": "San Marino",
+        "created_at": "2022-11-03 14:20:49.962",
+        "district": "",
+        "last_updated": "2022-11-03 14:20:49.962",
+        "phone": 9621880720,
+        "postal_code": "99305-7380"
+    },
+    {
+        "address_id": 3,
+        "address_line_1": "148 Sincere Fort",
+        "address_line_2": "",
+        "city": "Lake Charles",
+        "country": "Samoa",
+        "created_at": "2022-11-03 14:20:49.962",
+        "district": "",
+        "last_updated": "2022-11-03 14:20:49.962",
+        "phone": 1730783349,
+        "postal_code": "89360"
+    }
+]}
