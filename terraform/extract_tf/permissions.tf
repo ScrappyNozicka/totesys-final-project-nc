@@ -85,6 +85,6 @@ resource "aws_iam_policy" "lambda_logging_cloudwatch" {
 }
 resource "aws_iam_policy_attachment" "lambda_logging_attach" {
  name       = "lambda_logging_attach"
- policy_arn = "arn:aws:iam::aws:policy/<lambda_logging_cloudwatch>"
+ policy_arn = "aws_iam_policy.lambda_logging_cloudwatch.arn"
  roles      = [aws_iam_role.extract_iam.name]
 }
