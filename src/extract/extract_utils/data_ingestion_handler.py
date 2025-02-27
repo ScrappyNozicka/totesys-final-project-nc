@@ -1,6 +1,6 @@
 import json
-from src.extract.extract_utils.totesys_processor import ToteSysProcessor
-from src.extract.extract_utils.s3_file_handler import S3FileHandler
+from extract_utils.totesys_processor import ToteSysProcessor
+from extract_utils.s3_file_handler import S3FileHandler
 
 
 class DataIngestionHandler:

@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 from extract_utils.data_ingestion_handler import DataIngestionHandler
 from extract_utils.get_data_from_db import get_data_from_db
 
-def extract_main_script():
+def extract_main_script(event, context):
     """
     Main script for Extraction Phase.
     It takes data from ToteSys Database and saves it to S3 Bucket.
@@ -21,5 +21,5 @@ def extract_main_script():
     ingestion_handler.process_and_upload(totesys_data)
 
 
-if __name__ == "__main__":
-    extract_main_script()
+# if __name__ == "__main__":
+#     extract_main_script()
