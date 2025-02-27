@@ -2,6 +2,7 @@ import boto3
 import os
 from dotenv import load_dotenv
 
+
 class S3FileHandler:
     """Handles interactions with AWS S3, including uploading files."""
 
@@ -31,10 +32,16 @@ class S3FileHandler:
             file_data (_type_): JSON
             file_name (_type_): Name of new file
         Returns:
-            dict or str: Success message if upload is successful, error message otherwise.
+            dict or str: Success message if upload is successful,
+                         error message otherwise.
         """
         try:
-            self.s3_client.put_object(Body=file_data, Bucket=self.bucket_name, Key=file_name)
-            return {"Success": f"File {file_name} has been added to {self.bucket_name}"}
+            self.s3_client.put_object(
+                Body=file_data, Bucket=self.bucket_name, Key=file_name
+            )
+            return {
+                "Success": f"File {file_name} has been added to "
+                f"{self.bucket_name}"
+            }
         except Exception as e:
             return {"Error": str(e)}

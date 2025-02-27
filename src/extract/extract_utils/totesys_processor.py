@@ -1,5 +1,8 @@
 class ToteSysProcessor:
-    """Handles extraction of table names, row IDs, and last_updated timestamps from ToteSys data."""
+    """
+    Handles extraction of table names, row IDs, and
+    last_updated timestamps from ToteSys data.
+    """
 
     @staticmethod
     def get_table_names(totesys_data: dict[list[dict]]) -> list[str]:
