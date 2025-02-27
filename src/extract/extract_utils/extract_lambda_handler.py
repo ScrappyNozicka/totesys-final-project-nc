@@ -1,4 +1,3 @@
-
 # from src.extract.vars import BUCKET_NAME
 # from src.extract.extract_utils.extract_s3 import creates3ingestion
 # # from src.extract.connection import create_conn
@@ -24,7 +23,7 @@
 # db_port = os.environ['DB_PORT']
 
 # def lambda_handler(event, context):
-    
+
 #     try:
 #         connection = pg8000.connect(
 #             user=db_user,
@@ -32,7 +31,7 @@
 #             host=db_host,
 #             database=db_name
 #         )
-        
+
 #         with connection.cursor() as cursor:
 #             cursor.execute(f"SELECT * FROM toyses")
 #             rows = cursor.fetchall()
@@ -53,8 +52,7 @@
 #             'body': json.dumps(f"Data successfully uploaded to {s3_key}")
 #         }
 
-  
+
 #     except Exception as e:
 #         logging.error(f"Error: {str(e)}")
 #         raise e
-    
