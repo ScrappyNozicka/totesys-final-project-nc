@@ -48,10 +48,10 @@ def get_data_from_db(s3_timestamp=None):
             table_data = [dict(zip(columns, result)) for result in query_result]
             for item in table_data:
                 item["created_at"] = item["created_at"].strftime(
-                    "%Y-%m-%d %H:%M:%S.%f"
+                    "%Y-%m-%d--%H-%M-%S-%f"
                 )[:-3]
                 item["last_updated"] = item["last_updated"].strftime(
-                    "%Y-%m-%d %H:%M:%S.%f"
+                    "%Y-%m-%d--%H-%M-%S-%f"
                 )[:-3]
             result[table] = table_data
         db.close()
@@ -59,3 +59,4 @@ def get_data_from_db(s3_timestamp=None):
     except Exception as err:
         print("Error: Database connection not found", err)
         raise ConnectionError
+
