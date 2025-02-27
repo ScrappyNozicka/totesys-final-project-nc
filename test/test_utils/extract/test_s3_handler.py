@@ -4,6 +4,16 @@ import boto3
 import os
 from src.extract.extract_utils.s3_file_handler import S3FileHandler
 
+@pytest.fixture(scope="function", autouse=True)
+def aws_credentials():
+    """Mocked AWS Credentials for moto."""
+
+    os.environ["AWS_ACCESS_KEY_ID"] = "test"
+    os.environ["AWS_SECRET_ACCESS_KEY"] = "test"
+    os.environ["AWS_SECURITY_TOKEN"] = "test"
+    os.environ["AWS_SESSION_TOKEN"] = "test"
+    os.environ["AWS_DEFAULT_REGION"] = "eu-west-2"
+
 @pytest.fixture
 def mock_aws_setup():
     """Setup a mock AWS S3 bucket using moto's mock_aws in the eu-west-2 region."""
