@@ -4,16 +4,7 @@ resource "aws_lambda_function" "extract_lambda" {
    function_name = var.lambda_name
    runtime = "python3.13"
    role = aws_iam_role.extract_iam.arn     
-   handler = "extract_lambda_handler.lambda_handler"
-
-
-
-
-  
-   layers = [
-       aws_lambda_layer_version.shared_layer.arn
-   ]
-   depends_on = [
-       aws_lambda_layer_version.shared_layer
-   ]
+   handler = "extract_lambda_handler.extract_main_script" 
+    layers = [aws_lambda_layer_version.extract_layer.arn]
+   depends_on = [aws_lambda_layer_version.extract_layer]
 }
