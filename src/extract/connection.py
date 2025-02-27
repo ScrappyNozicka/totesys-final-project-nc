@@ -10,3 +10,4 @@ def create_conn():
 
 def close_db(conn):
     conn.close()
+
