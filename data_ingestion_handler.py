@@ -29,3 +29,11 @@ class DataIngestionHandler:
                 file_name = self.s3_handler.get_new_file_name(table_name, row_id, last_updated)
 
                 self.s3_handler.upload_file(file_data, file_name)
+
+
+# retrive bucket's last_updated
+
+# Approaches for timestamps:
+# 1. Return dictionary in format: {"table_name": max("last_updated")}
+# 2. Return string of last_updated maximum value across all tables: max("last_updated")
+# 3. Return dictionary containing last updates for each record in table: 
