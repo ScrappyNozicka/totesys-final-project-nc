@@ -33,9 +33,11 @@ class DataIngestionHandler:
                 for key, value in row.items():
                     if isinstance(value, Decimal):
                         row[key] = float(value)
-            
+
             file_data = json.dumps(table_data)
 
-            file_name = self.s3_handler.get_new_file_name(table_name, last_updated_max)
+            file_name = self.s3_handler.get_new_file_name(
+                table_name, last_updated_max
+            )
 
             self.s3_handler.upload_file(file_data, file_name)

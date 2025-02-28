@@ -45,11 +45,10 @@ def s3_handler():
 def test_get_new_file_name(s3_handler):
     """Test the get_new_file_name method."""
     table_name = "users"
-    row_id = "123"
     last_updated = "2025-02-26"
-    expected_file_name = "users/123/2025-02-26"
+    expected_file_name = "users/2025-02-26"
 
-    file_name = s3_handler.get_new_file_name(table_name, row_id, last_updated)
+    file_name = s3_handler.get_new_file_name(table_name, last_updated)
     assert file_name == expected_file_name
 
 
