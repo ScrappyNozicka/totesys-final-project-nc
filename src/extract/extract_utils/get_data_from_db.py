@@ -1,13 +1,8 @@
 from src.extract.connection import create_conn
-from datetime import datetime
-
-
 
 
 class ConnectionError(Exception):
     pass
-
-
 
 
 def get_data_from_db(s3_timestamp=None):
@@ -51,7 +46,9 @@ def get_data_from_db(s3_timestamp=None):
             query_str = f"SELECT * FROM {table}" + query_minutes_str
             query_result = db.run(query_str)
             columns = [col["name"] for col in db.columns]
-            table_data = [dict(zip(columns, result)) for result in query_result]
+            table_data = [
+                dict(zip(columns, result)) for result in query_result
+                ]
             for item in table_data:
                 item["created_at"] = item["created_at"].strftime(
                     "%Y-%m-%d--%H-%M-%S-%f"
@@ -59,15 +56,9 @@ def get_data_from_db(s3_timestamp=None):
                 item["last_updated"] = item["last_updated"].strftime(
                     "%Y-%m-%d--%H-%M-%S-%f"
                 )[:-3]
-                datetime_value = datetime.strptime(
-                            item["created_at"],
-                            "%Y-%m-%d--%H-%M-%S-%f"
-                            )
             result[table] = table_data
         db.close()
         return result
     except Exception as err:
         print("Error: Database connection not found", err)
         raise ConnectionError
-
-get_data_from_db(s3_timestamp="2022-11-03 14:20:49.999000")
