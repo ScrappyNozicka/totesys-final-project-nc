@@ -3,6 +3,7 @@ from moto import mock_aws
 import boto3
 import os
 from src.extract.extract_utils.s3_file_handler import S3FileHandler
+from datetime import datetime
 
 
 @pytest.fixture(scope="function", autouse=True)
@@ -104,7 +105,7 @@ def test_return_timestamp_if_single_file(mock_aws_setup, s3_handler):
         Key=file_name
         )
 
-    expected_response = "2022, 11, 03, 14, 20, 49, 962000"
+    expected_response = datetime(2022, 11, 3, 14, 20, 49, 962000) 
 
     response = s3_handler.s3_timestamp_extraction()
 
@@ -131,7 +132,7 @@ def test_return_timestamp_if_multi_files(mock_aws_setup, s3_handler):
 
     response = s3_handler.s3_timestamp_extraction()
 
-    assert response == "2022, 11, 03, 14, 20, 49, 999000"
+    assert response == datetime(2022, 11, 3, 14, 20, 49, 999000)
 
 
 def test_return_none_if_no_files_in_s3_success(mock_aws_setup, s3_handler):

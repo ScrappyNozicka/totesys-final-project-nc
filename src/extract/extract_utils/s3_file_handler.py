@@ -65,7 +65,7 @@ class S3FileHandler:
                 else:
                     print("No files available.")
             if lt:
-                return lt.strftime("%Y, %m, %d, %H, %M, %S, %f")
+                return lt
             else:
                 return None
         except Exception as e:

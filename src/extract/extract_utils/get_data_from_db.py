@@ -1,4 +1,5 @@
 from src.extract.connection import create_conn
+from datetime import datetime
 
 
 
@@ -58,9 +59,15 @@ def get_data_from_db(s3_timestamp=None):
                 item["last_updated"] = item["last_updated"].strftime(
                     "%Y-%m-%d--%H-%M-%S-%f"
                 )[:-3]
+                datetime_value = datetime.strptime(
+                            item["created_at"],
+                            "%Y-%m-%d--%H-%M-%S-%f"
+                            )
             result[table] = table_data
         db.close()
         return result
     except Exception as err:
         print("Error: Database connection not found", err)
         raise ConnectionError
+
+get_data_from_db(s3_timestamp="2022-11-03 14:20:49.999000")
