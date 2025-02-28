@@ -2,6 +2,7 @@ from dotenv import load_dotenv
 
 from extract_utils.data_ingestion_handler import DataIngestionHandler
 from extract_utils.get_data_from_db import get_data_from_db
+from extract_utils.s3_file_handler import S3FileHandler
 
 def extract_main_script(event, context):
     """
@@ -15,7 +16,8 @@ def extract_main_script(event, context):
     """
     try:
         load_dotenv()
-        timestamp="2025-2-27 14:20:49.962" #place holder befor have the func ready
+        s3_file_handler = S3FileHandler()
+        timestamp = s3_file_handler.s3_timestamp_extraction()
         totesys_data = get_data_from_db(timestamp)
         ingestion_handler = DataIngestionHandler()
 
