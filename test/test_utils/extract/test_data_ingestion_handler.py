@@ -11,7 +11,11 @@ def sample_data():
         "orders": [
             {"orders_id": "123", "last_updated": "2024-02-25"},
             {"orders_id": "124", "last_updated": "2024-02-26"},
-        ]
+        ],
+        "sales": [
+            {"sales_id": "123", "last_updated": "2024-02-25"},
+            {"sales_id": "124", "last_updated": "2024-02-26"},
+        ],
     }
 
 
@@ -47,12 +51,12 @@ def test_upload_file_arguments(mocker, handler, sample_data):
     # Validate arguments passed to upload_file
     expected_calls = [
         mocker.call(
-            json.dumps({"orders_id": "123", "last_updated": "2024-02-25"}),
-            "orders/123/2024-02-25",
+            json.dumps(sample_data["orders"]),
+            "orders/2024-02-26",
         ),
         mocker.call(
-            json.dumps({"orders_id": "124", "last_updated": "2024-02-26"}),
-            "orders/124/2024-02-26",
+            json.dumps(sample_data["sales"]),
+            "sales/2024-02-26",
         ),
     ]
 

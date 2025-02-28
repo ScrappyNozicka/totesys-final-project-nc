@@ -45,11 +45,10 @@ def s3_handler():
 def test_get_new_file_name(s3_handler):
     """Test the get_new_file_name method."""
     table_name = "users"
-    row_id = "123"
     last_updated = "2025-02-26"
-    expected_file_name = "users/123/2025-02-26"
+    expected_file_name = "users/2025-02-26"
 
-    file_name = s3_handler.get_new_file_name(table_name, row_id, last_updated)
+    file_name = s3_handler.get_new_file_name(table_name, last_updated)
     assert file_name == expected_file_name
 
 
@@ -91,18 +90,17 @@ def test_upload_file_failure_due_to_permissions(s3_handler):
 
 def test_return_timestamp_if_single_file(mock_aws_setup, s3_handler):
     """Test successful timestamp extraction from single file in S3."""
-    s3_client = boto3.client('s3')
+    s3_client = boto3.client("s3")
     file_name = "test_folder/test_file_id/2022-11-03--14-20-49-962"
     s3_client.put_object(
         Bucket=os.environ["S3_BUCKET_NAME"],
         Key=file_name,
-        Body=b"Test content"
-        )
+        Body=b"Test content",
+    )
 
     response = s3_client.head_object(
-        Bucket=os.environ["S3_BUCKET_NAME"],
-        Key=file_name
-        )
+        Bucket=os.environ["S3_BUCKET_NAME"], Key=file_name
+    )
 
     expected_response = "2022, 11, 03, 14, 20, 49, 962000"
 
@@ -113,21 +111,21 @@ def test_return_timestamp_if_single_file(mock_aws_setup, s3_handler):
 
 def test_return_timestamp_if_multi_files(mock_aws_setup, s3_handler):
     """Test successful timestamp extraction from multiple files in S3."""
-    s3_client = boto3.client('s3')
+    s3_client = boto3.client("s3")
 
     file_name_1 = "test_folder/test_file_id/2022-11-03--14-20-49-962"
     s3_client.put_object(
         Bucket=os.environ["S3_BUCKET_NAME"],
         Key=file_name_1,
-        Body=b"Test content 1"
-        )
+        Body=b"Test content 1",
+    )
 
     file_name_2 = "another_test_folder/test_file_id/2022-11-03--14-20-49-999"
     s3_client.put_object(
         Bucket=os.environ["S3_BUCKET_NAME"],
         Key=file_name_2,
-        Body=b"Test content 2"
-        )
+        Body=b"Test content 2",
+    )
 
     response = s3_handler.s3_timestamp_extraction()
 
