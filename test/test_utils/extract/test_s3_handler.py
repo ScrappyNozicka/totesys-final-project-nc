@@ -87,3 +87,64 @@ def test_upload_file_failure_due_to_permissions(s3_handler):
     assert (
         "Access Denied" in response["Error"]
     )  # Checking for AccessDenied error
+
+
+def test_return_timestamp_if_single_file(mock_aws_setup, s3_handler):
+    """Test successful timestamp extraction from single file in S3."""
+    s3_client = boto3.client('s3')
+    file_name = "test_folder/test_file_id/2022-11-03--14-20-49-962"
+    s3_client.put_object(
+        Bucket=os.environ["S3_BUCKET_NAME"],
+        Key=file_name,
+        Body=b"Test content"
+        )
+
+    response = s3_client.head_object(
+        Bucket=os.environ["S3_BUCKET_NAME"],
+        Key=file_name
+        )
+
+    expected_response = "2022, 11, 03, 14, 20, 49, 962000"
+
+    response = s3_handler.s3_timestamp_extraction()
+
+    assert response == expected_response
+
+
+def test_return_timestamp_if_multi_files(mock_aws_setup, s3_handler):
+    """Test successful timestamp extraction from multiple files in S3."""
+    s3_client = boto3.client('s3')
+
+    file_name_1 = "test_folder/test_file_id/2022-11-03--14-20-49-962"
+    s3_client.put_object(
+        Bucket=os.environ["S3_BUCKET_NAME"],
+        Key=file_name_1,
+        Body=b"Test content 1"
+        )
+
+    file_name_2 = "another_test_folder/test_file_id/2022-11-03--14-20-49-999"
+    s3_client.put_object(
+        Bucket=os.environ["S3_BUCKET_NAME"],
+        Key=file_name_2,
+        Body=b"Test content 2"
+        )
+
+    response = s3_handler.s3_timestamp_extraction()
+
+    assert response == "2022, 11, 03, 14, 20, 49, 999000"
+
+
+def test_return_none_if_no_files_in_s3_success(mock_aws_setup, s3_handler):
+    """Test successful none extraction if no file in S3."""
+    response = s3_handler.s3_timestamp_extraction()
+
+    assert response is None
+
+
+def test_non_existent_bucket(mock_aws_setup, s3_handler):
+    """Simulating unavailable bucket and error handling."""
+    os.environ["S3_BUCKET_NAME"] = "non-existen-bucket"
+
+    response = s3_handler.s3_timestamp_extraction()
+
+    assert response is None
