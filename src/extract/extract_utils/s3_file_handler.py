@@ -12,7 +12,7 @@ class S3FileHandler:
         self.bucket_name = os.getenv("S3_BUCKET_NAME")
         self.s3_client = boto3.client("s3")
 
-    def get_new_file_name(self, table_name, row_id, last_updated):
+    def get_new_file_name(self, table_name, last_updated):
         """
         Generate filename for new row of data
 
@@ -24,7 +24,7 @@ class S3FileHandler:
         Returns:
             str: Filename
         """
-        return f"{table_name}/{row_id}/{last_updated}"
+        return f"{table_name}/{last_updated}"
 
     def upload_file(self, file_data, file_name):
         """
