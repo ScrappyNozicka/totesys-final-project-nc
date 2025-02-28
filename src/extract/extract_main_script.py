@@ -13,13 +13,13 @@ def extract_main_script(event, context):
         - AWS credentials
         - Bucket Name
     """
-    load_dotenv()
+    try:
+        load_dotenv()
+        timestamp="2025-2-27 14:20:49.962" #place holder befor have the func ready
+        totesys_data = get_data_from_db(timestamp)
+        ingestion_handler = DataIngestionHandler()
 
-    totesys_data = get_data_from_db()
-    ingestion_handler = DataIngestionHandler()
-
-    ingestion_handler.process_and_upload(totesys_data)
-
-
-# if __name__ == "__main__":
-#     extract_main_script()
+        ingestion_handler.process_and_upload(totesys_data)
+        return "Updated successfully"
+    except:
+        return "Update failed"
