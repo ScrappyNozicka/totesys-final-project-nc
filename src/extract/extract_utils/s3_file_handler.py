@@ -1,6 +1,7 @@
 import boto3
 import os
 from dotenv import load_dotenv
+from datetime import datetime
 
 
 class S3FileHandler:
@@ -53,13 +54,18 @@ class S3FileHandler:
             lt = None
             for page in s3_iterator:
                 if "Contents" in page:
-                    lt2 = max(
-                        page['Contents'],
-                        key=lambda x: x['LastModified']
-                        )
-                    if lt is None or lt2['LastModified'] > lt['LastModified']:
-                        lt = lt2
-            timestamp = lt['LastModified']
-            return timestamp.strftime("%Y, %m, %d, %H, %M, %S, %f")
-        except Exception:
+                    for individual_object in page["Contents"]:
+                        lt2 = individual_object["Key"].split("/")[-1]
+                        datetime_value = datetime.strptime(
+                            lt2,
+                            "%Y-%m-%d--%H-%M-%S-%f"
+                            )
+                        if lt is None or datetime_value > lt:
+                            lt = datetime_value
+                else:
+                    print("No files available.")
+            if lt:
+                return lt.strftime("%Y, %m, %d, %H, %M, %S, %f")
+        except Exception as e:
+            print(f"Error: {e}")
             return {"Error": "Unable to provide timestamp"}
