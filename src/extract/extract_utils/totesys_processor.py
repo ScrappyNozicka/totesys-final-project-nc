@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+
 class ToteSysProcessor:
     """
     Handles extraction of table names, row IDs, and
@@ -35,7 +36,7 @@ class ToteSysProcessor:
             str: last_updated
         """
         return row["last_updated"]
-    
+
     @staticmethod
     def decimal_to_str(value):
         """Convert Decimal to string to avoid precision loss."""

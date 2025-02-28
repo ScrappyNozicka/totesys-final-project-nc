@@ -27,7 +27,9 @@ class DataIngestionHandler:
             for row in table_data:
                 row_id = self.processor.get_row_id(row, table_name)
                 last_updated = self.processor.get_last_updated(row)
-                file_data = json.dumps(row, default=self.processor.decimal_to_str)
+                file_data = json.dumps(
+                    row, default=self.processor.decimal_to_str
+                )
                 file_name = self.s3_handler.get_new_file_name(
                     table_name, row_id, last_updated
                 )

@@ -49,7 +49,7 @@ class S3FileHandler:
 
     def s3_timestamp_extraction(self):
         try:
-            s3_paginator = self.s3_client.get_paginator('list_objects_v2')
+            s3_paginator = self.s3_client.get_paginator("list_objects_v2")
             s3_iterator = s3_paginator.paginate(Bucket=self.bucket_name)
             lt = None
             for page in s3_iterator:
@@ -57,9 +57,8 @@ class S3FileHandler:
                     for individual_object in page["Contents"]:
                         lt2 = individual_object["Key"].split("/")[-1]
                         datetime_value = datetime.strptime(
-                            lt2,
-                            "%Y-%m-%d--%H-%M-%S-%f"
-                            )
+                            lt2, "%Y-%m-%d--%H-%M-%S-%f"
+                        )
                         if lt is None or datetime_value > lt:
                             lt = datetime_value
                 else:

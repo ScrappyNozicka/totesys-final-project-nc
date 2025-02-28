@@ -18,6 +18,7 @@ def extract_main_script(event, context):
         load_dotenv()
         s3_file_handler = S3FileHandler()
         timestamp = s3_file_handler.s3_timestamp_extraction()
+        print(timestamp)
         totesys_data = get_data_from_db(timestamp)
         ingestion_handler = DataIngestionHandler()
 
