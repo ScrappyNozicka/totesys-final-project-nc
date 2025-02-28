@@ -4,9 +4,9 @@ resource "aws_lambda_function" "extract_lambda" {
    function_name = var.lambda_name
    runtime = "python3.13"
    role = aws_iam_role.extract_iam.arn     
-   handler = "extract_lambda_handler.extract_main_script" 
-    layers = [aws_lambda_layer_version.extract_layer.arn]
-   depends_on = [aws_lambda_layer_version.extract_layer]
+   handler = "extract_main_script.extract_main_script" 
+   layers = [aws_lambda_layer_version.extract_python_layer.arn]
+   timeout = 120
    environment {
     variables = {
         DB_USER="project_team_8"
@@ -14,7 +14,8 @@ resource "aws_lambda_function" "extract_lambda" {
         DB_HOST="nc-data-eng-totesys-production.chpsczt8h1nu.eu-west-2.rds.amazonaws.com"
         DB_NAME="totesys"
         DB_PORT="5432"
-    }
+        S3_BUCKET_NAME="ingestion-bucket-ketts-lough"
    }
+}
 }
 

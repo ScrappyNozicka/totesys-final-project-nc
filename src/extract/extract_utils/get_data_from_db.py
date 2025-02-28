@@ -1,4 +1,4 @@
-from src.extract.connection import create_conn
+from connection import create_conn
 
 
 class ConnectionError(Exception):

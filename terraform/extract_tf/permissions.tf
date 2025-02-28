@@ -40,7 +40,7 @@ data "aws_iam_policy_document" "s3policy-doc" {
            "s3:GetObjectVersion",
            "s3:ListMultipartUploadParts"
        ]
-        resources = ["arn:aws:s3:::ingestionbucketkettslough", "arn:aws:s3:::ingestionbucketkettslough/*"
+        resources = ["arn:aws:s3:::ingestion-bucket-ketts-lough", "arn:aws:s3:::ingestion-bucket-ketts-lough/*"
         ]
    }
 }
