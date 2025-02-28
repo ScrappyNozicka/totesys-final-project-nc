@@ -14,7 +14,7 @@ resource "aws_lambda_function" "extract_lambda" {
         DB_HOST="nc-data-eng-totesys-production.chpsczt8h1nu.eu-west-2.rds.amazonaws.com"
         DB_NAME="totesys"
         DB_PORT="5432"
-        S3_BUCKET_NAME="test-extract-via-lambda-v1"
+        S3_BUCKET_NAME="ingestion-bucket-ketts-lough"
    }
 }
 }
