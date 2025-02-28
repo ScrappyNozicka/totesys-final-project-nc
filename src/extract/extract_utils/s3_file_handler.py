@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from datetime import datetime
 
 
+
 class S3FileHandler:
     """Handles interactions with AWS S3, including uploading files."""
 
@@ -64,7 +65,7 @@ class S3FileHandler:
                 else:
                     print("No files available.")
             if lt:
-                return lt.strftime("%Y, %m, %d, %H, %M, %S, %f")
+                return lt
             else:
                 return None
         except Exception as e:

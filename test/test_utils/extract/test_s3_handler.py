@@ -3,6 +3,9 @@ from moto import mock_aws
 import boto3
 import os
 from src.extract.extract_utils.s3_file_handler import S3FileHandler
+from datetime import datetime
+from unittest.mock import MagicMock
+import unittest
 
 
 @pytest.fixture(scope="function", autouse=True)
@@ -102,11 +105,9 @@ def test_return_timestamp_if_single_file(mock_aws_setup, s3_handler):
         Bucket=os.environ["S3_BUCKET_NAME"], Key=file_name
     )
 
-    expected_response = "2022, 11, 03, 14, 20, 49, 962000"
-
     response = s3_handler.s3_timestamp_extraction()
 
-    assert response == expected_response
+    assert response == datetime(2022, 11, 3, 14, 20, 49, 962000)
 
 
 def test_return_timestamp_if_multi_files(mock_aws_setup, s3_handler):
@@ -129,7 +130,7 @@ def test_return_timestamp_if_multi_files(mock_aws_setup, s3_handler):
 
     response = s3_handler.s3_timestamp_extraction()
 
-    assert response == "2022, 11, 03, 14, 20, 49, 999000"
+    assert response == datetime(2022, 11, 3, 14, 20, 49, 999000)
 
 
 def test_return_none_if_no_files_in_s3_success(mock_aws_setup, s3_handler):
@@ -146,3 +147,19 @@ def test_non_existent_bucket(mock_aws_setup, s3_handler):
     response = s3_handler.s3_timestamp_extraction()
 
     assert response is None
+
+class TestS3FileHandler(unittest.TestCase):
+    def setUp(self):
+        self.s3_handler = S3FileHandler()
+        self.s3_handler.s3_client = MagicMock()
+
+    def test_error_handling(self):
+
+        paginator_mock = MagicMock()
+        paginator_mock.paginate.side_effect = Exception("Some error occurred")
+
+        self.s3_handler.s3_client.get_paginator.return_value = paginator_mock
+
+        result = self.s3_handler.s3_timestamp_extraction()
+
+        assert result == {"Error": "Unable to provide timestamp"}
