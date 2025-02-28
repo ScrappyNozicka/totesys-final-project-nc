@@ -66,6 +66,8 @@ class S3FileHandler:
                     print("No files available.")
             if lt:
                 return lt.strftime("%Y, %m, %d, %H, %M, %S, %f")
+            else:
+                return None
         except Exception as e:
             print(f"Error: {e}")
             return {"Error": "Unable to provide timestamp"}
