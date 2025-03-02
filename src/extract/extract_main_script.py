@@ -32,4 +32,3 @@ def extract_main_script(event, context):
     except:
         return "Update failed"
     
-extract_main_script(None, None)

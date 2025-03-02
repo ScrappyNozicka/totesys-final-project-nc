@@ -11,12 +11,18 @@ class DataIngestionHandler:
         self.s3_handler = S3FileHandler()
 
     def normalize_data(self, table_data: list[dict]):
+        """
+        Normalizes the data by converting `Decimal` and `datetime` values to
+        their appropriate types.
+
+        Args:
+            table_data (list[dict]): Table data
+        """
         for row in table_data:
             for key, value in row.items():
                 if isinstance(value, Decimal):
                     row[key] = float(value)
                 if isinstance(value, datetime):
-                    print("detect datetime", value)
                     row[key] = str(value)
 
     def process_and_upload(

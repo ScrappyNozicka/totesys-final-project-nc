@@ -19,16 +19,13 @@ class S3FileHandler:
         Generate filename for new row of data
 
         Args:
-            table_name (_type_): table_name
-            row_id (_type_): row_id value
-            last_updated (_type_): last_updated value
+            table_name (str): Name of the table
+            processing_timestamp (str): Timestamp of processing invocation
 
         Returns:
             str: Filename
         """
-        print(processing_timestamp)
         timestamp = processing_timestamp.replace(" ", "-")
-        print(timestamp)
         return f"{table_name}/{timestamp}"
 
     def upload_file(
@@ -60,7 +57,6 @@ class S3FileHandler:
 
     def save_last_timestamp(self, timestamp: str):
         try:
-            print(timestamp)
             self.s3_client.put_object(
                 Body=timestamp,
                 Bucket=self.bucket_name,
@@ -82,7 +78,6 @@ class S3FileHandler:
                 return response["Body"].read().decode("utf-8").strip()
         except botocore.exceptions.ClientError as e:
             if e.response["Error"]["Code"] == "NoSuchKey":
-                # Object doesn't exist
                 return None
             else:
                 # TODO: Replace with proper logging if needed
