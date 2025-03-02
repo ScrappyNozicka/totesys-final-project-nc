@@ -1,7 +1,7 @@
 import boto3
 import os
 from dotenv import load_dotenv
-from datetime import datetime
+import botocore.exceptions
 
 
 class S3FileHandler:
@@ -12,7 +12,9 @@ class S3FileHandler:
         self.bucket_name = os.getenv("S3_BUCKET_NAME")
         self.s3_client = boto3.client("s3")
 
-    def get_new_file_name(self, table_name, last_updated):
+    def get_new_file_name(
+        self, table_name: str, processing_timestamp: str
+    ) -> str:
         """
         Generate filename for new row of data
 
@@ -24,19 +26,28 @@ class S3FileHandler:
         Returns:
             str: Filename
         """
-        return f"{table_name}/{last_updated}"
+        print(processing_timestamp)
+        timestamp = processing_timestamp.replace(" ", "-")
+        print(timestamp)
+        return f"{table_name}/{timestamp}"
 
-    def upload_file(self, file_data, file_name):
+    def upload_file(
+        self, file_data, table_name: str, processing_timestamp: str
+    ):
         """
         Load table row as a new file into S3 bucket
         Args:
-            file_data (_type_): JSON
-            file_name (_type_): Name of new file
+            file_data : JSON to upload
+            table_name (str): Name of table
+            processing_timestamp (str): Timestamp of processing invocation
         Returns:
-            dict or str: Success message if upload is successful,
-                         error message otherwise.
+            dict: Success message if upload is successful,
+                error message otherwise.
         """
         try:
+            file_name = self.get_new_file_name(
+                table_name, processing_timestamp
+            )
             self.s3_client.put_object(
                 Body=file_data, Bucket=self.bucket_name, Key=file_name
             )
@@ -47,26 +58,37 @@ class S3FileHandler:
         except Exception as e:
             return {"Error": str(e)}
 
-    def s3_timestamp_extraction(self):
+    def save_last_timestamp(self, timestamp: str):
         try:
-            s3_paginator = self.s3_client.get_paginator("list_objects_v2")
-            s3_iterator = s3_paginator.paginate(Bucket=self.bucket_name)
-            lt = None
-            for page in s3_iterator:
-                if "Contents" in page:
-                    for individual_object in page["Contents"]:
-                        lt2 = individual_object["Key"].split("/")[-1]
-                        datetime_value = datetime.strptime(
-                            lt2, "%Y-%m-%d--%H-%M-%S-%f"
-                        )
-                        if lt is None or datetime_value > lt:
-                            lt = datetime_value
-                else:
-                    print("No files available.")
-            if lt:
-                return lt.strftime("%Y, %m, %d, %H, %M, %S, %f")
-            else:
-                return None
+            print(timestamp)
+            self.s3_client.put_object(
+                Body=timestamp,
+                Bucket=self.bucket_name,
+                Key="last_timestamp.txt",
+            )
+            return {
+                "Success": f"File last_timestamp.txt has been updated in "
+                f"{self.bucket_name}"
+            }
         except Exception as e:
-            print(f"Error: {e}")
-            return {"Error": "Unable to provide timestamp"}
+            return {"Error": str(e)}
+
+    def get_last_timestamp(self) -> str | None:
+        try:
+            response = self.s3_client.get_object(
+                Bucket=self.bucket_name, Key="last_timestamp.txt"
+            )
+            if "Body" in response:
+                return response["Body"].read().decode("utf-8").strip()
+        except botocore.exceptions.ClientError as e:
+            if e.response["Error"]["Code"] == "NoSuchKey":
+                # Object doesn't exist
+                return None
+            else:
+                # TODO: Replace with proper logging if needed
+                print(f"ClientError fetching last timestamp: {e}")
+                raise
+        except Exception as e:
+            # TODO: Replace with proper logging if needed
+            print(f"Unexpected error fetching last timestamp: {e}")
+            raise

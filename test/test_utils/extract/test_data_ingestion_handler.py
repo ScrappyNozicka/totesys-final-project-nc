@@ -31,11 +31,15 @@ def test_upload_file_call_count(mocker, handler, sample_data):
         "extract_utils.s3_file_handler.S3FileHandler.upload_file"
     )
     mock_upload_file.return_value = {"Success": "File uploaded"}
+    mock_save_timestamp = mocker.patch(
+        "extract_utils.s3_file_handler.S3FileHandler.save_last_timestamp"
+    )
 
-    handler.process_and_upload(sample_data)
+    handler.process_and_upload(sample_data, None)
 
     # Check if upload_file was called twice
     assert mock_upload_file.call_count == 2
+    assert mock_save_timestamp.call_count == 1
 
 
 def test_upload_file_arguments(mocker, handler, sample_data):
@@ -45,18 +49,23 @@ def test_upload_file_arguments(mocker, handler, sample_data):
         "extract_utils.s3_file_handler.S3FileHandler.upload_file"
     )
     mock_upload_file.return_value = {"Success": "File uploaded"}
+    mocker.patch(
+        "extract_utils.s3_file_handler.S3FileHandler.save_last_timestamp"
+    )
 
-    handler.process_and_upload(sample_data)
+    handler.process_and_upload(sample_data, "2024-02-26")
 
     # Validate arguments passed to upload_file
     expected_calls = [
         mocker.call(
             json.dumps(sample_data["orders"]),
-            "orders/2024-02-26",
+            "orders",
+            "2024-02-26",
         ),
         mocker.call(
             json.dumps(sample_data["sales"]),
-            "sales/2024-02-26",
+            "sales",
+            "2024-02-26",
         ),
     ]
 

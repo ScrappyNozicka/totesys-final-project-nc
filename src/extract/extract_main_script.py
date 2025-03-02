@@ -1,4 +1,5 @@
 from dotenv import load_dotenv
+from datetime import datetime
 
 from extract_utils.data_ingestion_handler import DataIngestionHandler
 from extract_utils.get_data_from_db import get_data_from_db
@@ -16,13 +17,19 @@ def extract_main_script(event, context):
     """
     try:
         load_dotenv()
-        s3_file_handler = S3FileHandler()
-        timestamp = s3_file_handler.s3_timestamp_extraction()
-        print(timestamp)
-        totesys_data = get_data_from_db(timestamp)
-        ingestion_handler = DataIngestionHandler()
 
-        ingestion_handler.process_and_upload(totesys_data)
+        s3_file_handler = S3FileHandler()
+        ingestion_handler = DataIngestionHandler()
+        current_timestamp = str(datetime.now())
+
+        last_timestamp = s3_file_handler.get_last_timestamp()
+
+        totesys_data = get_data_from_db(last_timestamp, current_timestamp)
+
+        ingestion_handler.process_and_upload(totesys_data, current_timestamp)
+
         return "Updated successfully"
     except:
         return "Update failed"
+    
+extract_main_script(None, None)

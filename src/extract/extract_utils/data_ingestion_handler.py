@@ -1,6 +1,6 @@
 import json
 from decimal import Decimal
-from extract_utils.totesys_processor import ToteSysProcessor
+from datetime import datetime
 from extract_utils.s3_file_handler import S3FileHandler
 
 
@@ -9,35 +9,37 @@ class DataIngestionHandler:
 
     def __init__(self):
         self.s3_handler = S3FileHandler()
-        self.processor = ToteSysProcessor()
 
-    def process_and_upload(self, totesys_data: dict[list[dict]]):
+    def normalize_data(self, table_data: list[dict]):
+        for row in table_data:
+            for key, value in row.items():
+                if isinstance(value, Decimal):
+                    row[key] = float(value)
+                if isinstance(value, datetime):
+                    print("detect datetime", value)
+                    row[key] = str(value)
+
+    def process_and_upload(
+        self, totesys_data: dict[list[dict]], processing_timestamp: str
+    ):
         """
         Handler of raw data from ToteSys DataBase. Saves data into
         S3 bucket specified by environment variable.
 
         Args:
             totesys_data (dict[list[dict]]): Data from ToteSys DB
+            processing_timestamp (str): Timestamp string of processing
         """
-        table_names = self.processor.get_table_names(totesys_data)
 
-        for table_name in table_names:
-            # get list of rows in current table
-            table_data = totesys_data[table_name]
+        for table_name, table_data in totesys_data.items():
 
-            last_updated_max = ""
-            for row in table_data:
-                last_updated = self.processor.get_last_updated(row)
-                if last_updated > last_updated_max:
-                    last_updated_max = last_updated
-                for key, value in row.items():
-                    if isinstance(value, Decimal):
-                        row[key] = float(value)
+            if table_data:
+                self.normalize_data(table_data)
 
-            file_data = json.dumps(table_data)
+                file_data = json.dumps(table_data)
 
-            file_name = self.s3_handler.get_new_file_name(
-                table_name, last_updated_max
-            )
+                self.s3_handler.upload_file(
+                    file_data, table_name, processing_timestamp
+                )
 
-            self.s3_handler.upload_file(file_data, file_name)
+        self.s3_handler.save_last_timestamp(processing_timestamp)
