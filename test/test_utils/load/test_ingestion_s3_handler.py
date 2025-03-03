@@ -3,7 +3,6 @@ from moto import mock_aws
 import boto3
 import os
 import json
-import botocore.exceptions
 from src.transform.transform_utils.ingestion_s3_handler import (
     IngestionS3Handler,
 )
