@@ -5,12 +5,6 @@ resource "aws_s3_bucket" "ingestion_bucket" {
     Name        = "Our bucket"
     Environment = "Dev"
   }
+
+  force_destroy = true
 }
-
-# resource "aws_s3_bucket_versioning" "ingestion_bucket_versioning" {
-#     bucket = aws_s3_bucket.ingestion_bucket.id 
-
-#     versioning_configuration {
-#         status = "Enabled"
-#     }
-# }

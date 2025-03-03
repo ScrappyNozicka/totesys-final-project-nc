@@ -1,4 +1,5 @@
 import json
+from decimal import Decimal
 from extract_utils.totesys_processor import ToteSysProcessor
 from extract_utils.s3_file_handler import S3FileHandler
 
@@ -24,23 +25,19 @@ class DataIngestionHandler:
             # get list of rows in current table
             table_data = totesys_data[table_name]
 
+            last_updated_max = ""
             for row in table_data:
-                row_id = self.processor.get_row_id(row, table_name)
                 last_updated = self.processor.get_last_updated(row)
-                file_data = json.dumps(row, default=self.processor.decimal_to_str)
-                file_name = self.s3_handler.get_new_file_name(
-                    table_name, row_id, last_updated
-                )
-                print(f"saving row: {file_data}")
-                self.s3_handler.upload_file(file_data, file_name)
-                print(f"saved row: {file_data}")
+                if last_updated > last_updated_max:
+                    last_updated_max = last_updated
+                for key, value in row.items():
+                    if isinstance(value, Decimal):
+                        row[key] = float(value)
 
+            file_data = json.dumps(table_data)
 
-# retrive bucket's last_updated
+            file_name = self.s3_handler.get_new_file_name(
+                table_name, last_updated_max
+            )
 
-# Approaches for timestamps:
-# 1. Return dictionary in format:
-#   {"table_name": max("last_updated")}
-# 2. Return string of last_updated maximum value across all tables:
-#   max("last_updated")
-# 3. Return dictionary containing last updates for each record in table:
+            self.s3_handler.upload_file(file_data, file_name)
