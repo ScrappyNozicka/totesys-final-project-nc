@@ -23,8 +23,6 @@ resource "aws_iam_role" "extract_iam" {
 }
 
 
-
-
 #Read to S3
 
 
@@ -40,7 +38,7 @@ data "aws_iam_policy_document" "s3policy-doc" {
            "s3:GetObjectVersion",
            "s3:ListMultipartUploadParts"
        ]
-        resources = ["arn:aws:s3:::ingestion-bucket-ketts-lough", "arn:aws:s3:::ingestion-bucket-ketts-lough/*"
+        resources = ["arn:aws:s3:::${var.ingestion_bucket}", "arn:aws:s3:::${var.ingestion_bucket}/*"
         ]
    }
 }
@@ -56,32 +54,30 @@ resource "aws_iam_policy_attachment" "s3-fullaccess-attach" {
 }
 
 
+data "aws_iam_policy_document" "cw_document" {
+  statement {
 
+    actions = ["logs:CreateLogGroup"]
 
+    resources = [
+      "arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:*"
+    ]
+  }
 
+  statement {
 
-resource "aws_lambda_permission" "allow_eventbridge" {
- statement_id  = "AllowExecutionFromEventBridge"
- action        = "lambda:InvokeFunction"
- function_name = aws_lambda_function.extract_lambda.function_name
- principal     = "events.amazonaws.com"
- source_arn    = aws_cloudwatch_event_rule.lambda_schedule.arn
+    actions = ["logs:CreateLogStream", "logs:PutLogEvents"]
+
+    resources = [
+      "arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:log-group:*:*"
+    ]
+  }
+
 }
 
-
 resource "aws_iam_policy" "lambda_logging_cloudwatch" {
- name        = "lambda_logging_policy"
- description = "allows lambda function to write to cloudwatch"
- policy = jsonencode({
-   Version = "2012-10-17"
-   Statement = [
-     {
-       Action   = "logs:*"
-       Resource = "*"
-       Effect   = "Allow"
-     }
-   ]
- })
+  name = "lambda_logging_cloudwatch"
+  policy      = data.aws_iam_policy_document.cw_document.json
 }
 resource "aws_iam_role_policy_attachment" "lambda_logging_attach" {
  policy_arn = aws_iam_policy.lambda_logging_cloudwatch.arn
@@ -97,7 +93,7 @@ resource "aws_iam_policy" "secretsmanager_policy" {
      {
        Effect   = "Allow"
        Action   = "secretsmanager:GetSecretValue"
-       Resource = "arn:aws:secretsmanager:eu-west-2:205930621103:secret:ketts-lough-secrets-*"
+       Resource = "arn:aws:secretsmanager:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:secret:ketts-lough-secrets-*"
      }
    ]
  })
@@ -108,3 +104,26 @@ resource "aws_iam_role_policy_attachment" "attach_secrets_policy" {
  policy_arn = aws_iam_policy.secretsmanager_policy.arn
  role       = aws_iam_role.extract_iam.name
 }
+
+
+resource "aws_iam_role" "transform_iam" {
+  name               = "transform-iam"
+  assume_role_policy = data.aws_iam_policy_document.assume_role.json
+}
+
+
+resource "aws_iam_role" "load_iam" {
+  name               = "load-iam"
+  assume_role_policy = data.aws_iam_policy_document.assume_role.json
+}
+
+resource "aws_iam_role_policy_attachment" "transform_lambda_logging_attach" {
+  policy_arn = aws_iam_policy.lambda_logging_cloudwatch.arn
+  role       = aws_iam_role.transform_iam.name
+}
+
+resource "aws_iam_role_policy_attachment" "load_lambda_logging_attach" {
+  policy_arn = aws_iam_policy.lambda_logging_cloudwatch.arn
+  role       = aws_iam_role.load_iam.name
+}
+

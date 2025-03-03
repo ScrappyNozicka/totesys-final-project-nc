@@ -1,4 +1,4 @@
-data "archive_file" "lambda_package" {
+data "archive_file" "extract_lambda_package" {
  type        = "zip"
  source_dir  = "${path.module}/../../src/extract"
  output_path = "${path.module}/../extract_lambda.zip"
@@ -20,3 +20,15 @@ resource "aws_lambda_layer_version" "extract_python_layer" {
     
 }
 
+
+data "archive_file" "transform_lambda_package" {
+  type        = "zip"
+  source_dir  = "${path.module}/../../src/transform"
+  output_path = "${path.module}/../transform_lambda.zip"
+}
+
+data "archive_file" "load_lambda_package" {
+  type        = "zip"
+  source_dir  = "${path.module}/../../src/load"
+  output_path = "${path.module}/../load_lambda.zip"
+}
