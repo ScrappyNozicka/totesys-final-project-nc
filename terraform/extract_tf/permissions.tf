@@ -88,3 +88,23 @@ resource "aws_iam_role_policy_attachment" "lambda_logging_attach" {
  role      = aws_iam_role.extract_iam.name
 }
 
+resource "aws_iam_policy" "secretsmanager_policy" {
+ name        = "LambdaSecretsManagerAccess"
+ description = "Allow Lambda to get secrets from AWS Secrets Manager"
+  policy = jsonencode({
+   Version = "2012-10-17"
+   Statement = [
+     {
+       Effect   = "Allow"
+       Action   = "secretsmanager:GetSecretValue"
+       Resource = "arn:aws:secretsmanager:eu-west-2:205930621103:secret:ketts-lough-secrets-*"
+     }
+   ]
+ })
+}
+
+
+resource "aws_iam_role_policy_attachment" "attach_secrets_policy" {
+ policy_arn = aws_iam_policy.secretsmanager_policy.arn
+ role       = aws_iam_role.extract_iam.name
+}
