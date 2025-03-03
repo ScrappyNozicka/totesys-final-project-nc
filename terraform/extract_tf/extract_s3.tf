@@ -1,5 +1,5 @@
 resource "aws_s3_bucket" "ingestion_bucket" {
-  bucket = "ingestion-bucket-ketts-lough"
+  bucket = var.ingestion_bucket
 
   tags = {
     Name        = "Our bucket"

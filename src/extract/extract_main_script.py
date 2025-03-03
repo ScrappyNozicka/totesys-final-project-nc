@@ -48,7 +48,7 @@ def extract_main_script(event, context):
 
         ingestion_handler.process_and_upload(totesys_data, current_timestamp)
 
-        return "Updated successfully"
+        return {"message": "Updated successfully"}
     except:
-        return "Update failed"
+        return {"message": "Update failed"}
     
