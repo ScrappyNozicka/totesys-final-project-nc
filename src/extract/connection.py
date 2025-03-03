@@ -12,7 +12,3 @@ def create_conn():
         host=os.environ["DB_HOST"],
         port=int(os.environ["DB_PORT"])
 )
-
-def close_db(conn):
-    conn.close()
-

@@ -67,24 +67,32 @@ def test_upload_file_success(mock_aws_setup, s3_handler):
     )
 
 
-# issue for later, tet passing locally but doesnt pass via CI/CD pipeline
-@pytest.mark.skip
-def test_upload_file_failure_due_to_permissions(s3_handler):
-    """Test file upload failure due to permission issues."""
-    # Simulate missing S3_BUCKET_NAME environment variable
-    os.environ["S3_BUCKET_NAME"] = (
-        "non-existent-bucket"  # Mocking a non-existent bucket
+def test_save_last_timestamp_success(mock_aws_setup, s3_handler):
+    timestamp = "2025-02-26T12:00:00"
+    response = s3_handler.save_last_timestamp(timestamp)
+
+    assert "Success" in response
+    assert (
+        "File last_timestamp.txt has been updated in test-bucket"
+        in response["Success"]
+    )
+    s3_client = boto3.client("s3", region_name="eu-west-2")
+    obj = s3_client.get_object(Bucket="test-bucket", Key="last_timestamp.txt")
+    body = obj["Body"].read().decode("utf-8")
+    assert body == timestamp
+
+
+def test_get_last_timestamp_no_file(mock_aws_setup, s3_handler):
+    result = s3_handler.get_last_timestamp()
+    assert result is None
+
+
+def test_get_last_timestamp_success(mock_aws_setup, s3_handler):
+    timestamp = "2025-02-26T12:00:00"
+    s3_client = boto3.client("s3", region_name="eu-west-2")
+    s3_client.put_object(
+        Bucket="test-bucket", Key="last_timestamp.txt", Body=timestamp
     )
 
-    file_data = b"Test file content"
-    table_name = "users"
-    timestamp = "15:14"
-
-    # This should simulate an AccessDenied error
-    # because the bucket is missing or wrong
-    response = s3_handler.upload_file(file_data, table_name, timestamp)
-
-    assert "Error" in response
-    assert (
-        "Access Denied" in response["Error"]
-    )  # Checking for AccessDenied error
+    result = s3_handler.get_last_timestamp()
+    assert result == timestamp

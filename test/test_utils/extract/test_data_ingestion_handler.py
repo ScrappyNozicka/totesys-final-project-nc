@@ -1,5 +1,7 @@
 import pytest
 import json
+from decimal import Decimal
+from datetime import datetime
 from src.extract.extract_utils.data_ingestion_handler import (
     DataIngestionHandler,
 )
@@ -70,3 +72,21 @@ def test_upload_file_arguments(mocker, handler, sample_data):
     ]
 
     mock_upload_file.assert_has_calls(expected_calls, any_order=True)
+
+
+def test_normalize_data(handler):
+    table_data = [
+        {
+            "amount": Decimal("123.45"),
+            "created_at": datetime(2025, 3, 2, 12, 0, 0),
+            "name": "Test User",
+        }
+    ]
+
+    handler.normalize_data(table_data)
+
+    assert isinstance(table_data[0]["amount"], float)
+    assert table_data[0]["amount"] == 123.45
+
+    assert isinstance(table_data[0]["created_at"], str)
+    assert table_data[0]["created_at"] == "2025-03-02 12:00:00"
