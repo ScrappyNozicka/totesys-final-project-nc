@@ -1,4 +1,5 @@
 from connection import create_conn
+import logging
 
 
 class ConnectionError(Exception):
@@ -80,14 +81,14 @@ def get_data_from_db(
             ]
 
             result[table_name] = table_data
-
+            logging.info(f"Data retrieved for table: {table_name}")
     except Exception as err:
-        # TODO: swap print for proper logging
-        print("Error: Database connection not found", err)
+        logging.error(f"Error retrieving data from database: {err}")
         raise ConnectionError
 
     finally:
         if db:
             db.close()
+            logging.info("Database connection closed.")
 
     return result

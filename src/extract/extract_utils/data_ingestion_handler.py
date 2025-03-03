@@ -2,7 +2,7 @@ import json
 from decimal import Decimal
 from datetime import datetime
 from extract_utils.s3_file_handler import S3FileHandler
-
+import logging
 
 class DataIngestionHandler:
     """Main class to process ToteSys data and store it in S3."""
@@ -49,3 +49,4 @@ class DataIngestionHandler:
                 )
 
         self.s3_handler.save_last_timestamp(processing_timestamp)
+        logging.info(f"Last timestamp saved: {processing_timestamp}")

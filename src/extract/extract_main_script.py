@@ -1,13 +1,14 @@
 from dotenv import load_dotenv
 from datetime import datetime
-
 from extract_utils.data_ingestion_handler import DataIngestionHandler
 from extract_utils.get_data_from_db import get_data_from_db
 from extract_utils.s3_file_handler import S3FileHandler
 import boto3
 import os
 import json
-
+import logging
+#Set up the logging
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def get_secret():
    """Fetch secrets from AWS Secrets Manager"""
@@ -18,8 +19,9 @@ def get_secret():
        response = client.get_secret_value(SecretId=secret_name)
        secret = json.loads(response["SecretString"])
        return secret
-   except:
-       return "Unable to obtain secrets"
+   except Exception as e:
+        logging.error(f"Unable to obtain secrets: {e}")
+        raise
 
 def extract_main_script(event, context):
     """
@@ -43,12 +45,15 @@ def extract_main_script(event, context):
         current_timestamp = str(datetime.now())
 
         last_timestamp = s3_file_handler.get_last_timestamp()
-
+        logging.info(f"Last timestamp retrieved: {last_timestamp}")
         totesys_data = get_data_from_db(last_timestamp, current_timestamp)
+        logging.info("Data successfully retrieved from ToteSys database.")
 
         ingestion_handler.process_and_upload(totesys_data, current_timestamp)
+        logging.info("Data processed and uploaded to S3.")
 
         return "Updated successfully"
-    except:
+    except Exception as e:
+        logging.error(f"Update failed: {e}")
         return "Update failed"
     

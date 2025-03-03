@@ -2,7 +2,7 @@ import boto3
 import os
 from dotenv import load_dotenv
 import botocore.exceptions
-
+import logging
 
 class S3FileHandler:
     """Handles interactions with AWS S3, including uploading files."""
@@ -48,11 +48,13 @@ class S3FileHandler:
             self.s3_client.put_object(
                 Body=file_data, Bucket=self.bucket_name, Key=file_name
             )
+            logging.info(f"File {file_name} uploaded to {self.bucket_name}.")
             return {
                 "Success": f"File {file_name} has been added to "
                 f"{self.bucket_name}"
             }
         except Exception as e:
+            logging.error(f"Failed to upload {file_name}: {e}")
             return {"Error": str(e)}
 
     def save_last_timestamp(self, timestamp: str):
@@ -62,11 +64,13 @@ class S3FileHandler:
                 Bucket=self.bucket_name,
                 Key="last_timestamp.txt",
             )
+            logging.info(f"Last timestamp saved: {timestamp}")
             return {
                 "Success": f"File last_timestamp.txt has been updated in "
                 f"{self.bucket_name}"
             }
         except Exception as e:
+            logging.error(f"Failed to save last timestamp: {e}")
             return {"Error": str(e)}
 
     def get_last_timestamp(self) -> str | None:
@@ -75,11 +79,14 @@ class S3FileHandler:
                 Bucket=self.bucket_name, Key="last_timestamp.txt"
             )
             if "Body" in response:
-                return response["Body"].read().decode("utf-8").strip()
+                timestamp = response["Body"].read().decode("utf-8").strip()
+                logging.info(f"Retrieved last timestamp: {timestamp}")
+                return timestamp
         except botocore.exceptions.ClientError as e:
             if e.response["Error"]["Code"] == "NoSuchKey":
+                logging.warning("No previous timestamp found.")
                 return None
         except Exception as e:
-            # TODO: Replace with proper logging if needed
+            logging.error(f"Unexpected error fetching last timestamp: {e}")
             print(f"Unexpected error fetching last timestamp: {e}")
             raise

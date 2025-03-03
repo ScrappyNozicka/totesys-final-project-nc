@@ -68,6 +68,10 @@ resource "aws_lambda_permission" "allow_eventbridge" {
  source_arn    = aws_cloudwatch_event_rule.lambda_schedule.arn
 }
 
+resource "aws_cloudwatch_log_group" "lambda_log_group" {
+  name              = "/aws/lambda/extract_lambda"
+  retention_in_days = 14   #shorter?
+}
 
 resource "aws_iam_policy" "lambda_logging_cloudwatch" {
  name        = "lambda_logging_policy"
@@ -76,8 +80,12 @@ resource "aws_iam_policy" "lambda_logging_cloudwatch" {
    Version = "2012-10-17"
    Statement = [
      {
-       Action   = "logs:*"
-       Resource = "*"
+       Action   = [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+      ]
+       Resource = "arn:aws:logs:eu-west-2:205930621103:log-group:/aws/lambda/extract_lambda:*"
        Effect   = "Allow"
      }
    ]

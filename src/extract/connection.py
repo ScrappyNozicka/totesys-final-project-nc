@@ -1,14 +1,22 @@
 from pg8000.native import Connection
 import os
 from dotenv import load_dotenv
+import logging
+
 
 load_dotenv()
 
 def create_conn():
-    return Connection(
-        os.environ["DB_USER"], 
-        password = os.environ["DB_PASSWORD"], 
-        database = os.environ["DB_NAME"], 
-        host=os.environ["DB_HOST"],
-        port=int(os.environ["DB_PORT"])
-)
+    try:
+        conn = Connection(
+            os.environ["DB_USER"], 
+            password=os.environ["DB_PASSWORD"], 
+            database=os.environ["DB_NAME"], 
+            host=os.environ["DB_HOST"],
+            port=int(os.environ["DB_PORT"])
+        )
+        logging.info("Database connection established successfully.")
+        return conn
+    except Exception as e:
+        logging.error(f"Failed to establish database connection: {e}") 
+        raise
