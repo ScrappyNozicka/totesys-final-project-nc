@@ -70,7 +70,7 @@ resource "aws_lambda_permission" "allow_eventbridge" {
 
 resource "aws_cloudwatch_log_group" "lambda_log_group" {
   name              = "/aws/lambda/extract_lambda"
-  retention_in_days = 14   #shorter?
+  retention_in_days = 14
 }
 
 resource "aws_iam_policy" "lambda_logging_cloudwatch" {
@@ -80,12 +80,8 @@ resource "aws_iam_policy" "lambda_logging_cloudwatch" {
    Version = "2012-10-17"
    Statement = [
      {
-       Action   = [
-          "logs:CreateLogGroup",
-          "logs:CreateLogStream",
-          "logs:PutLogEvents"
-      ]
-       Resource = "arn:aws:logs:eu-west-2:205930621103:log-group:/aws/lambda/extract_lambda:*"
+       Action   = "logs:*"
+       Resource = "*"
        Effect   = "Allow"
      }
    ]
@@ -95,6 +91,76 @@ resource "aws_iam_role_policy_attachment" "lambda_logging_attach" {
  policy_arn = aws_iam_policy.lambda_logging_cloudwatch.arn
  role      = aws_iam_role.extract_iam.name
 }
+
+data "aws_iam_policy_document" "sns_topic_policy" {
+    policy_id = "__default_policy_ID"
+
+    statement {
+        sid     = "__default_statement_ID"
+        actions = [
+            "SNS:Subscribe",
+            "SNS:SetTopicAttributes",
+            "SNS:RemovePermission",
+            "SNS:Receive",
+            "SNS:Publish",
+            "SNS:ListSubscriptionsByTopic",
+            "SNS:GetTopicAttributes",
+            "SNS:DeleteTopic",
+            "SNS:AddPermission"
+        ]
+        effect    = "Allow"
+        resources = [aws_sns_topic.terraform_alerts.arn]
+        principals {
+            type        = "AWS"
+            identifiers = ["*"]
+        }
+        condition {
+            test     = "StringEquals"
+            variable = "AWS:SourceOwner"
+            values = [
+                "arn:aws:sns:eu-west-2:205930621103:my-terraform-alerts:*",
+            ]
+        }
+    }
+
+    statement {
+        sid       = "Allow_Publish_Alarms"
+        actions   = ["SNS:Publish"]
+        resources = [aws_sns_topic.terraform_alerts.arn]
+        principals {
+            type        = "Service"
+            identifiers = ["cloudwatch.amazonaws.com"]
+        }
+    }
+}
+resource "aws_iam_policy" "lambda_logging_sns" {
+  name        = "lambda_logging_sns_policy"
+  description = "Allows Lambda to publish logs and send SNS alerts"
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents",
+          "sns:Publish"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_logging_sns_attach" {
+  policy_arn = aws_iam_policy.lambda_logging_sns.arn
+  role       = aws_iam_role.extract_iam.name
+}
+
+
+
+
 
 resource "aws_iam_policy" "secretsmanager_policy" {
  name        = "LambdaSecretsManagerAccess"
