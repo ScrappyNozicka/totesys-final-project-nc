@@ -46,7 +46,7 @@ def test_get_new_file_name(s3_handler):
     """Test the get_new_file_name method."""
     table_name = "users"
     last_updated = "2025-02-26"
-    expected_file_name = "users/2025-02-26"
+    expected_file_name = "users/2025-02-26.json"
 
     file_name = s3_handler.get_new_file_name(table_name, last_updated)
     assert file_name == expected_file_name
@@ -55,94 +55,44 @@ def test_get_new_file_name(s3_handler):
 def test_upload_file_success(mock_aws_setup, s3_handler):
     """Test successful file upload to S3."""
     file_data = b"Test file content"
-    file_name = "users/123/2025-02-26"
+    table_name = "users"
+    timestamp = "15:14"
 
-    response = s3_handler.upload_file(file_data, file_name)
+    response = s3_handler.upload_file(file_data, table_name, timestamp)
 
     assert "Success" in response
     assert (
-        f"File {file_name} has been added to test-bucket"
+        f"File {table_name}/{timestamp}.json has been added to test-bucket"
         in response["Success"]
     )
 
 
-# issue for later, tet passing locally but doesnt pass via CI/CD pipeline
-@pytest.mark.skip
-def test_upload_file_failure_due_to_permissions(s3_handler):
-    """Test file upload failure due to permission issues."""
-    # Simulate missing S3_BUCKET_NAME environment variable
-    os.environ["S3_BUCKET_NAME"] = (
-        "non-existent-bucket"  # Mocking a non-existent bucket
-    )
+def test_save_last_timestamp_success(mock_aws_setup, s3_handler):
+    timestamp = "2025-02-26T12:00:00"
+    response = s3_handler.save_last_timestamp(timestamp)
 
-    file_data = b"Test file content"
-    file_name = "users/123/2025-02-26"
-
-    # This should simulate an AccessDenied error
-    # because the bucket is missing or wrong
-    response = s3_handler.upload_file(file_data, file_name)
-
-    assert "Error" in response
+    assert "Success" in response
     assert (
-        "Access Denied" in response["Error"]
-    )  # Checking for AccessDenied error
+        "File last_timestamp.txt has been updated in test-bucket"
+        in response["Success"]
+    )
+    s3_client = boto3.client("s3", region_name="eu-west-2")
+    obj = s3_client.get_object(Bucket="test-bucket", Key="last_timestamp.txt")
+    body = obj["Body"].read().decode("utf-8")
+    assert body == timestamp
 
 
-def test_return_timestamp_if_single_file(mock_aws_setup, s3_handler):
-    """Test successful timestamp extraction from single file in S3."""
-    s3_client = boto3.client("s3")
-    file_name = "test_folder/test_file_id/2022-11-03--14-20-49-962"
+def test_get_last_timestamp_no_file(mock_aws_setup, s3_handler):
+    result = s3_handler.get_last_timestamp()
+    assert result is None
+
+
+def test_get_last_timestamp_success(mock_aws_setup, s3_handler):
+    timestamp = "2025-02-26T12:00:00"
+    s3_client = boto3.client("s3", region_name="eu-west-2")
     s3_client.put_object(
-        Bucket=os.environ["S3_BUCKET_NAME"],
-        Key=file_name,
-        Body=b"Test content",
+        Bucket="test-bucket", Key="last_timestamp.txt", Body=timestamp
     )
 
-    response = s3_client.head_object(
-        Bucket=os.environ["S3_BUCKET_NAME"], Key=file_name
-    )
-
-    expected_response = "2022, 11, 03, 14, 20, 49, 962000"
-
-    response = s3_handler.s3_timestamp_extraction()
-
-    assert response == expected_response
-
-
-def test_return_timestamp_if_multi_files(mock_aws_setup, s3_handler):
-    """Test successful timestamp extraction from multiple files in S3."""
-    s3_client = boto3.client("s3")
-
-    file_name_1 = "test_folder/test_file_id/2022-11-03--14-20-49-962"
-    s3_client.put_object(
-        Bucket=os.environ["S3_BUCKET_NAME"],
-        Key=file_name_1,
-        Body=b"Test content 1",
-    )
-
-    file_name_2 = "another_test_folder/test_file_id/2022-11-03--14-20-49-999"
-    s3_client.put_object(
-        Bucket=os.environ["S3_BUCKET_NAME"],
-        Key=file_name_2,
-        Body=b"Test content 2",
-    )
-
-    response = s3_handler.s3_timestamp_extraction()
-
-    assert response == "2022, 11, 03, 14, 20, 49, 999000"
-
-
-def test_return_none_if_no_files_in_s3_success(mock_aws_setup, s3_handler):
-    """Test successful none extraction if no file in S3."""
-    response = s3_handler.s3_timestamp_extraction()
-
-    assert response is None
-
-
-def test_non_existent_bucket(mock_aws_setup, s3_handler):
-    """Simulating unavailable bucket and error handling."""
-    os.environ["S3_BUCKET_NAME"] = "non-existen-bucket"
-
-    response = s3_handler.s3_timestamp_extraction()
-
-    assert response is None
+    result = s3_handler.get_last_timestamp()
+    assert result == timestamp
