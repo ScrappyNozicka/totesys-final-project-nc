@@ -26,7 +26,7 @@ class S3FileHandler:
             str: Filename
         """
         timestamp = processing_timestamp.replace(" ", "-")
-        return f"{table_name}/{timestamp}"
+        return f"{table_name}/{timestamp}.json"
 
     def upload_file(
         self, file_data, table_name: str, processing_timestamp: str

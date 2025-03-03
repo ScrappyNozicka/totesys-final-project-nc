@@ -46,7 +46,7 @@ def test_get_new_file_name(s3_handler):
     """Test the get_new_file_name method."""
     table_name = "users"
     last_updated = "2025-02-26"
-    expected_file_name = "users/2025-02-26"
+    expected_file_name = "users/2025-02-26.json"
 
     file_name = s3_handler.get_new_file_name(table_name, last_updated)
     assert file_name == expected_file_name
@@ -62,7 +62,7 @@ def test_upload_file_success(mock_aws_setup, s3_handler):
 
     assert "Success" in response
     assert (
-        f"File {table_name}/{timestamp} has been added to test-bucket"
+        f"File {table_name}/{timestamp}.json has been added to test-bucket"
         in response["Success"]
     )
 
