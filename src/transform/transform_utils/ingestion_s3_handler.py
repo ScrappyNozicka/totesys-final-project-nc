@@ -57,7 +57,7 @@ class IngestionS3Handler:
             raise
 
     def get_data_from_ingestion(self):
-        last_timestamp = self.get_last_timestamp()
+        last_timestamp = self.get_last_timestamp() #"2024-01-01_00-00-00-000" #
         if last_timestamp:
             table_names = [
                 "counterparty",
@@ -74,10 +74,20 @@ class IngestionS3Handler:
             ]
             result = {}
 
-            for table_name in table_names:
-                file_name = self.get_file_name(table_name, last_timestamp)
-                file_data_json = self.get_table_content(file_name)
+        for table_name in table_names:
+            file_name = self.get_file_name(table_name, last_timestamp)
+            file_data_json = self.get_table_content(file_name)
+            
+            try:
                 file_data = json.loads(file_data_json)
                 result[table_name] = file_data
+            except json.JSONDecodeError as e:
+                print(f"Error decoding JSON for table {table_name}: {e}")
+            except Exception as e:
+                print(f"Unexpected error for table {table_name}: {e}")
 
-            return result
+        return result
+
+batch = IngestionS3Handler()
+test = batch.get_data_from_ingestion()
+print(test)
