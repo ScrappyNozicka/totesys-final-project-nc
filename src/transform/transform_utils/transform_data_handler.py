@@ -1,46 +1,83 @@
 import pandas as pd
 from src.transform.transform_utils.ingestion_s3_handler import IngestionS3Handler
 
-def transform_data():
-    ingention_handler = IngestionS3Handler()
-    raw_data = ingention_handler.get_data_from_ingestion()
-    df_address = pd.DataFrame(raw_data["address"])
-    print(df_address)
 
-transform_data()
+class PandaTransformation:
+    def transform_location_data():
+        ingention_handler = IngestionS3Handler()
+        raw_data = ingention_handler.get_data_from_ingestion()
+        df_location = pd.DataFrame(raw_data["address"])
+        del df_location['created_at']
+        del df_location['last_updated']
+        df_location.rename(columns = {'address_id':'location_id'}, inplace = True)
+        df_location
 
-#dim_currency -- currency table
-    #currency_id INT NN
-    #currency_code VARCHAR NN
-    #currency_name VARCHAR NN -- missing, to be hardcoded
+    def transform_currency__data():
+        ingention_handler = IngestionS3Handler()
+        raw_data = ingention_handler.get_data_from_ingestion()
+        df_currency = pd.DataFrame(raw_data["currency"])
+        del df_currency['created_at']
+        del df_currency['last_updated']
+        df_currency.insert(2, 'currency_name', ['Great Britain Pound', 'USA Dollar', 'Euro'])
+        df_currency
 
-#dim_date DATE NN -- data missing, need to be created from scratch
-    #date_id INT NN
-    #year INT NN
-    #month INT NN
-    #day INT NN
-    #day_of_week 
-    #day_name VARCHAR NN
-    #month_name VARCHAR NN
-    #quarter INT NN
+    def transform_staff_data():
+        ingention_handler = IngestionS3Handler()
+        raw_data = ingention_handler.get_data_from_ingestion()
+        df_staff = pd.DataFrame(raw_data["staff"])
+        del df_staff['created_at']
+        del df_staff['last_updated']
+        df_department = pd.DataFrame(raw_data["department"])
+        merged_df = pd.merge(df_staff, df_department, on="department_id", how="left")
+        del merged_df['department_id']
+        del merged_df['manager']
+        del merged_df['created_at']
+        del merged_df['last_updated']
+        merged_df[['staff_id', 'first_name', 'last_name', 'department_name', 'location', 'email_address']]
 
-#dim_staff -- staff table
-    #staff_id INT NN
-    #first_name VARCHAR NN
-    #last_name VARCHAR NN
-    #department_name VARCHAR NN -- from department table
-    #location VARCHAR NN -- from department table
-    #email_address  EMAIL_Address NN
+    def transform_design_data():
+        ingention_handler = IngestionS3Handler()
+        raw_data = ingention_handler.get_data_from_ingestion()
+        df_design = pd.DataFrame(raw_data["design"])
+        del df_design['created_at']
+        del df_design['last_updated']
+        df_design
 
-#dim_design -- design table
-    #design_id
-    #design_name
-    #file_location
-    #file_name
+    def transform_counterparty_data():
+        ingention_handler = IngestionS3Handler()
+        raw_data = ingention_handler.get_data_from_ingestion()
+        df_counterparty = pd.DataFrame(raw_data["counterparty"])
+        del df_counterparty['created_at']
+        del df_counterparty['last_updated']
+        df_counterparty.rename(columns = {'legal_address_id':'address_id'}, inplace = True)
+        df_address = pd.DataFrame(raw_data["address"])
+        merged_df = pd.merge(df_counterparty, df_address, on="address_id", how="left")
+        merged_df.rename(columns = {'address_line_1':'counterparty_legal_address_line_1', 'address_line_2':'counterparty_legal_address_line_2', 'district':'counterparty_legal_district', 'city':'counterparty_legal_city', 'postal_code':'counterparty_legal_postal_code', 'country':'counterparty_legal_country', 'phone':'counterparty_legal_phone_number'}, inplace = True)
+        merged_df[['counterparty_id', 'counterparty_legal_name', 'counterparty_legal_address_line_1','counterparty_legal_address_line_2', 'counterparty_legal_district', 'counterparty_legal_city', 'counterparty_legal_postal_code', 'counterparty_legal_country', 'counterparty_legal_phone_number']]
 
-#dim_location -- address values??
+    def transform_sales_order_data():
+        ingention_handler = IngestionS3Handler()
+        raw_data = ingention_handler.get_data_from_ingestion()
+        df_sales_order = pd.DataFrame(raw_data["sales_order"])
+        df_sales_order[['created_date', 'created_time']] = df_sales_order['created_at'].str.split(' ', n=1, expand=True)
+        df_sales_order[['last_updated_date', 'last_updated_time']] = df_sales_order['last_updated'].str.split(' ', n=1, expand=True)
+        df_sales_order['sales_record_id'] = range(1, 1+len(df_sales_order))
+        df_sales_order.rename(columns = {'staff_id':'sales_staff_id'}, inplace = True)
+        df_sales_order[['sales_record_id', 'sales_order_id', 'created_date','created_time', 'last_updated_date', 'last_updated_time', 'sales_staff_id', 'counterparty_id', 'units_sold', 'unit_price', 'currency_id', 'design_id', 'agreed_payment_date', 'agreed_delivery_date', 'agreed_delivery_location_id']]
 
-
-#dim_counterparty
-
-#fact_sales_order
+    def transform_date_data():
+        ingention_handler = IngestionS3Handler()
+        raw_data = ingention_handler.get_data_from_ingestion()
+        start_date = "2022-01-01"
+        end_date = "2047-12-31"
+        date_range = pd.date_range(start=start_date, end=end_date, freq="D")
+        date_range
+        dim_date = pd.DataFrame({"date_id": date_range})
+        dim_date["year"] = dim_date["date_id"].dt.year
+        dim_date["month"] = dim_date["date_id"].dt.month
+        dim_date["day"] = dim_date["date_id"].dt.day
+        dim_date["day_of_week"] = dim_date["date_id"].dt.dayofweek
+        dim_date["day_name"] = dim_date["date_id"].dt.strftime("%A")
+        dim_date["month_name"] = dim_date["date_id"].dt.strftime("%B")
+        dim_date["quarter"] = dim_date["date_id"].dt.quarter
+        dim_date
