@@ -137,7 +137,7 @@ dmypy.json
 # Local .terraform directories
 **/.terraform/*
 **/.terraform*
-terraform/*.zip
+# terraform/*.zip
 # .tfstate files
 *.tfstate
 *.tfstate.*
