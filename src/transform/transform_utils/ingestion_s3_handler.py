@@ -55,7 +55,7 @@ class IngestionS3Handler:
             # TODO: Replace with proper logging if needed
             print(f"Unexpected error fetching last timestamp: {e}")
             raise
-
+        return None
     def get_data_from_ingestion(self):
         last_timestamp = self.get_last_timestamp() #"2024-01-01_00-00-00-000" #
         if last_timestamp:
@@ -77,7 +77,10 @@ class IngestionS3Handler:
         for table_name in table_names:
             file_name = self.get_file_name(table_name, last_timestamp)
             file_data_json = self.get_table_content(file_name)
-            
+
+            if file_data_json is None:
+                print(f"No data found for {table_name}")
+                continue 
             try:
                 file_data = json.loads(file_data_json)
                 result[table_name] = file_data
