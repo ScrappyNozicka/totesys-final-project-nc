@@ -54,6 +54,6 @@ def extract_main_script(event, context):
 
         return "Updated successfully"
     except Exception as e:
-        logging.error(f"Update failed: {e}")
+        logging.error(f"ERROR - Update failed:{e}")
         return "Update failed"
     
