@@ -4,15 +4,6 @@ from src.transform.transform_utils.ingestion_s3_handler import IngestionS3Handle
 
 class PandaTransformation:
 
-    def transform_location_data():
-        ingention_handler = IngestionS3Handler()
-        raw_data = ingention_handler.get_data_from_ingestion()
-        df_location = pd.DataFrame(raw_data["address"])
-        del df_location['created_at']
-        del df_location['last_updated']
-        df_location.rename(columns = {'address_id':'location_id'}, inplace = True)
-        return df_location
-
     def transform_currency__data():
         ingention_handler = IngestionS3Handler()
         raw_data = ingention_handler.get_data_from_ingestion()   
@@ -22,6 +13,15 @@ class PandaTransformation:
         df_currency.drop(columns=["created_at", "last_updated"], inplace=True)
         df_currency["currency_name"] = df_currency["currency_code"].map(currencies_lookup)
         return df_currency
+
+    def transform_location_data():
+        ingention_handler = IngestionS3Handler()
+        raw_data = ingention_handler.get_data_from_ingestion()
+        df_location = pd.DataFrame(raw_data["address"])
+        del df_location['created_at']
+        del df_location['last_updated']
+        df_location.rename(columns = {'address_id':'location_id'}, inplace = True)
+        return df_location
 
     def transform_staff_data():
         ingention_handler = IngestionS3Handler()
