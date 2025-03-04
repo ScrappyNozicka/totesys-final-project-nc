@@ -9,7 +9,7 @@ resource "aws_sns_topic_subscription" "email_subscription" {
 }
 resource "aws_cloudwatch_log_metric_filter" "error_filter" {
  name = "ErrorFilter"
- log_group_name = aws_cloudwatch_log_group.lambda_log_group.name
+ log_group_name = "/aws/lambda/${var.lambda_name}"
  pattern = "ERROR"
  metric_transformation {
     name = "TerraformErrorCount"
