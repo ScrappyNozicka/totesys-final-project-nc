@@ -7,6 +7,11 @@ resource "aws_lambda_function" "load_lambda" {
   handler          = "load_main_script.load_main_script"
   layers           = [aws_lambda_layer_version.extract_python_layer.arn]
   timeout          = 900
+  environment {
+    variables = {
+      PROCESSED_S3_BUCKET_NAME = var.processed_bucket
+    }
+  }
 
 }
 

@@ -23,6 +23,7 @@ resource "aws_iam_role" "extract_iam" {
 }
 
 
+
 #Read to S3
 
 
@@ -38,7 +39,10 @@ data "aws_iam_policy_document" "s3policy-doc" {
            "s3:GetObjectVersion",
            "s3:ListMultipartUploadParts"
        ]
-        resources = ["arn:aws:s3:::${var.ingestion_bucket}", "arn:aws:s3:::${var.ingestion_bucket}/*"
+        resources = ["arn:aws:s3:::${var.ingestion_bucket}", 
+        "arn:aws:s3:::${var.ingestion_bucket}/*", 
+        "arn:aws:s3:::${var.processed_bucket}",
+        "arn:aws:s3:::${var.processed_bucket}/*"
         ]
    }
 }
@@ -49,9 +53,11 @@ resource "aws_iam_policy" "s3policy" {
 }
 resource "aws_iam_policy_attachment" "s3-fullaccess-attach" {
  name       = "s3-fullaccess-attachment"
- roles      = [aws_iam_role.extract_iam.name]
+ roles      = [aws_iam_role.extract_iam.name, aws_iam_role.transform_iam.name,  aws_iam_role.load_iam.name]
  policy_arn = aws_iam_policy.s3policy.arn
 }
+
+
 
 
 data "aws_iam_policy_document" "cw_document" {
@@ -105,7 +111,6 @@ resource "aws_iam_role_policy_attachment" "attach_secrets_policy" {
  role       = aws_iam_role.extract_iam.name
 }
 
-
 resource "aws_iam_role" "transform_iam" {
   name               = "transform-iam"
   assume_role_policy = data.aws_iam_policy_document.assume_role.json
@@ -126,4 +131,9 @@ resource "aws_iam_role_policy_attachment" "load_lambda_logging_attach" {
   policy_arn = aws_iam_policy.lambda_logging_cloudwatch.arn
   role       = aws_iam_role.load_iam.name
 }
+
+# resource "aws_iam_role_policy_attachment" "transform_lambda_access_s3" {
+#   policy_arn = aws_iam_policy.s3policy
+#   role       = aws_iam_role.transform_iam.name
+# }
 
