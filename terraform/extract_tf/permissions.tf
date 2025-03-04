@@ -230,9 +230,3 @@ resource "aws_iam_role_policy_attachment" "load_lambda_logging_attach" {
   policy_arn = aws_iam_policy.lambda_logging_cloudwatch.arn
   role       = aws_iam_role.load_iam.name
 }
-
-# resource "aws_iam_role_policy_attachment" "transform_lambda_access_s3" {
-#   policy_arn = aws_iam_policy.s3policy
-#   role       = aws_iam_role.transform_iam.name
-# }
-
