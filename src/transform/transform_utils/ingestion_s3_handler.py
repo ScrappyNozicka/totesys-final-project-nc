@@ -9,7 +9,7 @@ class IngestionS3Handler:
 
     def __init__(self):
         load_dotenv()
-        self.bucket_name =  "ingestion-bucket-ketts-lough"#os.getenv("S3_BUCKET_NAME")
+        self.bucket_name =  os.getenv("S3_BUCKET_NAME")
         self.s3_client = boto3.client("s3")
 
     def get_last_timestamp(self) -> str | None:
@@ -90,7 +90,3 @@ class IngestionS3Handler:
                 print(f"Unexpected error for table {table_name}: {e}")
 
         return result
-
-batch = IngestionS3Handler()
-test = batch.get_data_from_ingestion()
-print(test)
