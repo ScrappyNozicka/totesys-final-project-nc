@@ -1,10 +1,10 @@
 import pandas as pd
+import json
 from src.transform.transform_utils.ingestion_s3_handler import IngestionS3Handler
-
 
 class PandaTransformation:
 
-    def transform_currency__data():
+    def transform_currency_data():
         ingention_handler = IngestionS3Handler()
         raw_data = ingention_handler.get_data_from_ingestion()   
         with open("currencies_lookup.json", "r") as file:
