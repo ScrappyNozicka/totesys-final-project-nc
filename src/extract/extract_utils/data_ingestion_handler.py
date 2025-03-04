@@ -1,7 +1,7 @@
 import json
 from decimal import Decimal
 from datetime import datetime
-from extract_utils.s3_file_handler import S3FileHandler
+from src.extract.extract_utils.s3_file_handler import S3FileHandler
 
 
 class DataIngestionHandler:

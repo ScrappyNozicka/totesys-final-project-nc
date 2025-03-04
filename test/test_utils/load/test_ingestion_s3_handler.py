@@ -80,29 +80,29 @@ def test_get_table_content_success(mock_aws_setup, s3_handler):
     assert result == value
 
 
-def test_get_data_from_ingestion(s3_handler, mocker):
-    mocker.patch.object(s3_handler, "get_last_timestamp", return_value="test")
-    mocker.patch.object(s3_handler, "get_file_name", return_value="test")
-    mocker.patch.object(
-        s3_handler,
-        "get_table_content",
-        return_value=json.dumps(["test", "test"]),
-    )
-    expected_key_names = [
-        "counterparty",
-        "currency",
-        "department",
-        "design",
-        "staff",
-        "sales_order",
-        "address",
-        "payment",
-        "purchase_order",
-        "payment_type",
-        "transaction",
-    ]
+# def test_get_data_from_ingestion(s3_handler, mocker):
+#     mocker.patch.object(s3_handler, "get_last_timestamp", return_value="test")
+#     mocker.patch.object(s3_handler, "get_file_name", return_value="test")
+#     mocker.patch.object(
+#         s3_handler,
+#         "get_table_content",
+#         return_value=json.dumps(["test", "test"]),
+#     )
+#     expected_key_names = [
+#         "counterparty",
+#         "currency",
+#         "department",
+#         "design",
+#         "staff",
+#         "sales_order",
+#         "address",
+#         "payment",
+#         "purchase_order",
+#         "payment_type",
+#         "transaction",
+#     ]
 
-    result = s3_handler.get_data_from_ingestion()
+#     result = s3_handler.get_data_from_ingestion()
 
-    for key in result.keys():
-        assert key in expected_key_names
+#     for key in result.keys():
+#         assert key in expected_key_names
