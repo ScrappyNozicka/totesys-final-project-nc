@@ -9,7 +9,7 @@ class IngestionS3Handler:
 
     def __init__(self):
         load_dotenv()
-        self.bucket_name =  os.getenv("S3_BUCKET_NAME")
+        self.bucket_name = os.getenv("S3_BUCKET_NAME")
         self.s3_client = boto3.client("s3")
 
     def get_last_timestamp(self) -> str | None:
@@ -21,12 +21,13 @@ class IngestionS3Handler:
                 return response["Body"].read().decode("utf-8").strip()
         except botocore.exceptions.ClientError as e:
             if e.response["Error"]["Code"] == "NoSuchKey":
-                return None
+                print(f"ERROR: {e}")
+
         except Exception as e:
             # TODO: Replace with proper logging if needed
             print(f"Unexpected error fetching last timestamp: {e}")
-            raise
-
+        return None
+           
     def get_file_name(self, table_name: str, timestamp: str) -> str:
         """
         Generate filename for new row of data
@@ -50,14 +51,13 @@ class IngestionS3Handler:
                 return response["Body"].read().decode("utf-8")
         except botocore.exceptions.ClientError as e:
             if e.response["Error"]["Code"] == "NoSuchKey":
-                return None
+                print(f"ERROR: {e}")
         except Exception as e:
             # TODO: Replace with proper logging if needed
             print(f"Unexpected error fetching last timestamp: {e}")
-            raise
         return None
     def get_data_from_ingestion(self):
-        last_timestamp = self.get_last_timestamp() #"2024-01-01_00-00-00-000" #
+        last_timestamp = self.get_last_timestamp()
         if last_timestamp:
             table_names = [
                 "counterparty",
@@ -90,3 +90,6 @@ class IngestionS3Handler:
                 print(f"Unexpected error for table {table_name}: {e}")
 
         return result
+batch = IngestionS3Handler()
+test = batch.get_data_from_ingestion()
+print(test)
