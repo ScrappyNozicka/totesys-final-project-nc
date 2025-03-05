@@ -3,6 +3,11 @@ import os
 import io
 from dotenv import load_dotenv
 import pandas as pd
+import logging
+
+logging.basicConfig(
+    level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
 
 class ProcessedS3Handler:
@@ -57,11 +62,17 @@ class ProcessedS3Handler:
                 Bucket=self.bucket_name, Key=file_name, Body=f
             )
 
+            logging.info(
+                f"INFO: File {file_name} has been added to {self.bucket_name}"
+            )
             return {
                 "Success": f"File {file_name} has been added to "
                 f"{self.bucket_name}"
             }
         except Exception as e:
+            logging.error(
+                f"ERROR: Unexpected error uploading file to s3 processed: {e}"
+            )
             return {"Error": str(e)}
 
     def save_last_timestamp(self, timestamp: str):
@@ -76,6 +87,9 @@ class ProcessedS3Handler:
                 f"{self.bucket_name}"
             }
         except Exception as e:
+            logging.error(
+                f"ERROR: Unexpected error saving last timestamp: {e}"
+            )
             return {"Error": str(e)}
 
     def process_and_upload(

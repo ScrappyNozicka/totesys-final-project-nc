@@ -3,6 +3,11 @@ import os
 import json
 from dotenv import load_dotenv
 import botocore.exceptions
+import logging
+
+logging.basicConfig(
+    level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
 
 class IngestionS3Handler:
@@ -21,11 +26,11 @@ class IngestionS3Handler:
                 return response["Body"].read().decode("utf-8").strip()
         except botocore.exceptions.ClientError as e:
             if e.response["Error"]["Code"] == "NoSuchKey":
-                print(f"ERROR: {e}")
-
+                logging.info(f"INFO: {e} - No existing timestamp")
         except Exception as e:
-            # TODO: Replace with proper logging if needed
-            print(f"Unexpected error fetching last timestamp: {e}")
+            logging.error(
+                f"ERROR: Unexpected error fetching last timestamp: {e}"
+            )
         return None
 
     def get_file_name(self, table_name: str, timestamp: str) -> str:
@@ -51,10 +56,11 @@ class IngestionS3Handler:
                 return response["Body"].read().decode("utf-8")
         except botocore.exceptions.ClientError as e:
             if e.response["Error"]["Code"] == "NoSuchKey":
-                print(f"ERROR: {e}")
+                logging.info(f"INFO: {e} - No new data in table")
         except Exception as e:
-            # TODO: Replace with proper logging if needed
-            print(f"Unexpected error fetching last timestamp: {e}")
+            logging.error(
+                f"ERROR: Unexpected error fetching last timestamp: {e}"
+            )
         return None
 
     def get_data_from_ingestion(self):
@@ -80,14 +86,18 @@ class IngestionS3Handler:
             file_data_json = self.get_table_content(file_name)
 
             if file_data_json is None:
-                print(f"No data found for {table_name}")
+                logging.info(f"No data found for {table_name}")
                 continue
             try:
                 file_data = json.loads(file_data_json)
                 result[table_name] = file_data
             except json.JSONDecodeError as e:
-                print(f"Error decoding JSON for table {table_name}: {e}")
+                logging.error(
+                    f"ERROR: decoding JSON for table {table_name}: {e}"
+                )
             except Exception as e:
-                print(f"Unexpected error for table {table_name}: {e}")
+                logging.error(
+                    f"ERROR: Unexpected error for table {table_name}: {e}"
+                )
 
         return result
