@@ -90,6 +90,3 @@ class IngestionS3Handler:
                 print(f"Unexpected error for table {table_name}: {e}")
 
         return result
-batch = IngestionS3Handler()
-test = batch.get_data_from_ingestion()
-print(test)
