@@ -27,7 +27,7 @@ class IngestionS3Handler:
             # TODO: Replace with proper logging if needed
             print(f"Unexpected error fetching last timestamp: {e}")
         return None
-           
+
     def get_file_name(self, table_name: str, timestamp: str) -> str:
         """
         Generate filename for new row of data
@@ -56,6 +56,7 @@ class IngestionS3Handler:
             # TODO: Replace with proper logging if needed
             print(f"Unexpected error fetching last timestamp: {e}")
         return None
+
     def get_data_from_ingestion(self):
         last_timestamp = self.get_last_timestamp()
         if last_timestamp:
@@ -80,7 +81,7 @@ class IngestionS3Handler:
 
             if file_data_json is None:
                 print(f"No data found for {table_name}")
-                continue 
+                continue
             try:
                 file_data = json.loads(file_data_json)
                 result[table_name] = file_data

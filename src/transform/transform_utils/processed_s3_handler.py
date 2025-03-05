@@ -1,15 +1,17 @@
 import boto3
 import os
+import io
 from dotenv import load_dotenv
 import botocore.exceptions
+import pandas as pd
 
 
-class S3FileHandler:
-    """Handles interactions with AWS S3, including uploading files."""
+class ProcessedS3Handler:
+    """Handles interactions with S3 Processed, including uploading files."""
 
     def __init__(self):
         load_dotenv()
-        self.bucket_name = os.getenv("S3_BUCKET_NAME")
+        self.bucket_name = os.getenv("PROCESSED_S3_BUCKET_NAME")
         self.s3_client = boto3.client("s3")
 
     def get_new_file_name(
@@ -26,15 +28,18 @@ class S3FileHandler:
             str: Filename
         """
         timestamp = processing_timestamp.replace(" ", "-")
-        return f"{table_name}/{timestamp}.json"
+        return f"{table_name}/{timestamp}.parquet.gzip"
 
     def upload_file(
-        self, file_data, table_name: str, processing_timestamp: str
+        self,
+        data_frame: pd.DataFrame,
+        table_name: str,
+        processing_timestamp: str,
     ):
         """
         Load table as a new file into S3 bucket
         Args:
-            file_data : JSON to upload
+            data_frame : DataFrame to upload
             table_name (str): Name of table
             processing_timestamp (str): Timestamp of processing invocation
         Returns:
@@ -45,9 +50,14 @@ class S3FileHandler:
             file_name = self.get_new_file_name(
                 table_name, processing_timestamp
             )
+            f = io.BytesIO()
+            data_frame.to_parquet(f, compression="gzip")
+            f.seek(0)
+
             self.s3_client.put_object(
-                Body=file_data, Bucket=self.bucket_name, Key=file_name
+                Bucket=self.bucket_name, Key=file_name, Body=f
             )
+
             return {
                 "Success": f"File {file_name} has been added to "
                 f"{self.bucket_name}"
@@ -83,3 +93,22 @@ class S3FileHandler:
             # TODO: Replace with proper logging if needed
             print(f"Unexpected error fetching last timestamp: {e}")
         return None
+
+    def process_and_upload(
+        self, data: dict[pd.DataFrame], processing_timestamp: str
+    ):
+        """
+        Handler of data from S3 Ingestion. Saves data into
+        S3 bucket specified by environment variable.
+
+        Args:
+            data (dict[pd.DataFrame]): Data from S3 Ingestion
+            processing_timestamp (str): Timestamp string of processing
+        """
+
+        for table_name, data_frame in data.items():
+
+            if not data_frame.empty:
+                self.upload_file(data_frame, table_name, processing_timestamp)
+
+        self.save_last_timestamp(processing_timestamp)
