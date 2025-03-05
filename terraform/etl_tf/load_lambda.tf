@@ -5,7 +5,9 @@ resource "aws_lambda_function" "load_lambda" {
   runtime          = "python3.13"
   role             = aws_iam_role.load_iam.arn
   handler          = "load_main_script.load_main_script"
-  layers           = [aws_lambda_layer_version.extract_python_layer.arn]
+  layers           = [aws_lambda_layer_version.extract_python_layer.arn,
+                      aws_lambda_layer_version.fastparquet_python_layer.arn, 
+                      aws_lambda_layer_version.pandas_python_layer.arn]
   timeout          = 900
   environment {
     variables = {
