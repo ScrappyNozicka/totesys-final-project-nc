@@ -21,12 +21,13 @@ class IngestionS3Handler:
                 return response["Body"].read().decode("utf-8").strip()
         except botocore.exceptions.ClientError as e:
             if e.response["Error"]["Code"] == "NoSuchKey":
-                return None
+                print(f"ERROR: {e}")
+
         except Exception as e:
             # TODO: Replace with proper logging if needed
             print(f"Unexpected error fetching last timestamp: {e}")
-            raise
-
+        return None
+           
     def get_file_name(self, table_name: str, timestamp: str) -> str:
         """
         Generate filename for new row of data
@@ -50,12 +51,11 @@ class IngestionS3Handler:
                 return response["Body"].read().decode("utf-8")
         except botocore.exceptions.ClientError as e:
             if e.response["Error"]["Code"] == "NoSuchKey":
-                return None
+                print(f"ERROR: {e}")
         except Exception as e:
             # TODO: Replace with proper logging if needed
             print(f"Unexpected error fetching last timestamp: {e}")
-            raise
-
+        return None
     def get_data_from_ingestion(self):
         last_timestamp = self.get_last_timestamp()
         if last_timestamp:
@@ -74,10 +74,19 @@ class IngestionS3Handler:
             ]
             result = {}
 
-            for table_name in table_names:
-                file_name = self.get_file_name(table_name, last_timestamp)
-                file_data_json = self.get_table_content(file_name)
+        for table_name in table_names:
+            file_name = self.get_file_name(table_name, last_timestamp)
+            file_data_json = self.get_table_content(file_name)
+
+            if file_data_json is None:
+                print(f"No data found for {table_name}")
+                continue 
+            try:
                 file_data = json.loads(file_data_json)
                 result[table_name] = file_data
+            except json.JSONDecodeError as e:
+                print(f"Error decoding JSON for table {table_name}: {e}")
+            except Exception as e:
+                print(f"Unexpected error for table {table_name}: {e}")
 
-            return result
+        return result
