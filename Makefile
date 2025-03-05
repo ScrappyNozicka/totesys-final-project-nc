@@ -75,11 +75,11 @@ run-flake8:
 
 ## Run the unit tests
 unit-test:
-	$(call execute_in_env, PYTHONPATH=${PYTHONPATH} pytest -v)
+	$(call execute_in_env, PYTHONPATH=${PYTHONPATH} pytest --ignore=terraform/ -vvvrP)
 
 ## Run the coverage check
 check-coverage:
-	$(call execute_in_env, PYTHONPATH=${PYTHONPATH} pytest --cov=src --cov-report=term-missing --cov-report=html)
+	$(call execute_in_env, PYTHONPATH=${PYTHONPATH} pytest --ignore=terraform/ --cov=src --cov-report=term-missing --cov-report=html)
 
 ## Run pip audit
 run-pip-audit:

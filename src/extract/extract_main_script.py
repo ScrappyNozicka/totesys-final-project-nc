@@ -57,7 +57,7 @@ def extract_main_script(event, context):
        logging.info("Data processed and uploaded to S3.")
 
 
-       return "Updated successfully"
+       return {"message":"Updated successfully"}
    except Exception as e:
        logging.error(f"ERROR - Update failed:{e}")
-       return "Update failed"
+       return {"message": "Update failed"}

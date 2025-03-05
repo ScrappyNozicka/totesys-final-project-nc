@@ -28,3 +28,8 @@ variable "scheduler_name" {
   default = "ketts-lough-scheduler"
 }
 
+variable "processed_bucket" {
+  type    = string
+  default = "processed-bucket-ketts-lough"
+}
+

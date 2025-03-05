@@ -23,6 +23,7 @@ resource "aws_iam_role" "extract_iam" {
 }
 
 
+
 #Read to S3
 
 
@@ -38,7 +39,10 @@ data "aws_iam_policy_document" "s3policy-doc" {
            "s3:GetObjectVersion",
            "s3:ListMultipartUploadParts"
        ]
-        resources = ["arn:aws:s3:::${var.ingestion_bucket}", "arn:aws:s3:::${var.ingestion_bucket}/*"
+        resources = ["arn:aws:s3:::${var.ingestion_bucket}", 
+        "arn:aws:s3:::${var.ingestion_bucket}/*", 
+        "arn:aws:s3:::${var.processed_bucket}",
+        "arn:aws:s3:::${var.processed_bucket}/*"
         ]
    }
 }
@@ -49,22 +53,9 @@ resource "aws_iam_policy" "s3policy" {
 }
 resource "aws_iam_policy_attachment" "s3-fullaccess-attach" {
  name       = "s3-fullaccess-attachment"
- roles      = [aws_iam_role.extract_iam.name]
+ roles      = [aws_iam_role.extract_iam.name, aws_iam_role.transform_iam.name,  aws_iam_role.load_iam.name]
  policy_arn = aws_iam_policy.s3policy.arn
 }
-
-
-
-
-
-resource "aws_lambda_permission" "allow_eventbridge" {
-statement_id  = "AllowExecutionFromEventBridge"
-action        = "lambda:InvokeFunction"
-function_name = aws_lambda_function.extract_lambda.function_name
-principal     = "events.amazonaws.com"
-source_arn    = aws_cloudwatch_event_rule.lambda_schedule.arn
-}
-
 
 resource "aws_cloudwatch_log_group" "lambda_log_group" {
  name              = "/aws/lambda/extract_lambda"
@@ -94,25 +85,14 @@ data "aws_iam_policy_document" "cw_document" {
 }
 
 resource "aws_iam_policy" "lambda_logging_cloudwatch" {
-name        = "lambda_logging_policy"
-description = "allows lambda function to write to cloudwatch"
-policy = jsonencode({
-  Version = "2012-10-17"
-  Statement = [
-    {
-      Action   = "logs:*"
-      Resource = "*"
-      Effect   = "Allow"
-    }
-  ]
-})
+  name = "lambda_logging_cloudwatch"
+  policy      = data.aws_iam_policy_document.cw_document.json
 }
+
 resource "aws_iam_role_policy_attachment" "lambda_logging_attach" {
 policy_arn = aws_iam_policy.lambda_logging_cloudwatch.arn
 role      = aws_iam_role.extract_iam.name
 }
-
-
 
 data "aws_iam_policy_document" "sns_topic_policy" {
    policy_id = "__default_policy_ID"
@@ -183,8 +163,6 @@ resource "aws_iam_role_policy_attachment" "lambda_logging_sns_attach" {
  role       = aws_iam_role.extract_iam.name
 }
 
-
-
 resource "aws_iam_policy" "secretsmanager_policy" {
  name        = "LambdaSecretsManagerAccess"
  description = "Allow Lambda to get secrets from AWS Secrets Manager"
@@ -206,7 +184,6 @@ resource "aws_iam_role_policy_attachment" "attach_secrets_policy" {
  role       = aws_iam_role.extract_iam.name
 }
 
-
 resource "aws_iam_role" "transform_iam" {
   name               = "transform-iam"
   assume_role_policy = data.aws_iam_policy_document.assume_role.json
@@ -227,4 +204,3 @@ resource "aws_iam_role_policy_attachment" "load_lambda_logging_attach" {
   policy_arn = aws_iam_policy.lambda_logging_cloudwatch.arn
   role       = aws_iam_role.load_iam.name
 }
-
