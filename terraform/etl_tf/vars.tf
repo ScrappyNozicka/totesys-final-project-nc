@@ -15,7 +15,7 @@ variable "load_lambda_name" {
 
 variable "ingestion_bucket" {
   type    = string
-  default = "ingestion-bucket-ketts-lough-1"
+  default = "ingestion-bucket-ketts-lough"
 }
 
 variable "state_machine_name" {
@@ -30,6 +30,6 @@ variable "scheduler_name" {
 
 variable "processed_bucket" {
   type    = string
-  default = "processed-bucket-ketts-lough-1"
+  default = "processed-bucket-ketts-lough"
 }
 
