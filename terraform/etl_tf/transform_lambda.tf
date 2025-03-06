@@ -5,7 +5,9 @@ resource "aws_lambda_function" "transform_lambda" {
   runtime          = "python3.12"
   role             = aws_iam_role.transform_iam.arn
   handler          = "transform_main_script.transform_main_script"
-  layers           = [aws_lambda_layer_version.fastparquet_python_layer.arn, aws_lambda_layer_version.pandas_python_layer.arn]
+  layers           = [aws_lambda_layer_version.extract_python_layer.arn,
+                      aws_lambda_layer_version.fastparquet_python_layer.arn, 
+                      aws_lambda_layer_version.pandas_python_layer.arn]
   timeout          = 120
 
   environment {
