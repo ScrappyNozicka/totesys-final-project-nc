@@ -36,6 +36,42 @@ def mock_aws_setup():
         # Set environment variable for bucket name (normally loaded from .env)
         os.environ["S3_BUCKET_NAME"] = bucket_name
 
+        sample_data1 = [
+            {
+                "department_id": 1,
+                "name": "Yanrong",
+                "last_updated": "2024-02-01 12:00:00",
+            },
+            {
+                "department_id": 2,
+                "name": "Marcin",
+                "last_updated": "2024-02-01 12:00:00",
+            },
+        ]
+        sample_data2 = [
+            {
+                "department_id": 1,
+                "name": "Matthew",
+                "last_updated": "2024-02-01 12:00:01",
+            },
+            {
+                "department_id": 3,
+                "name": "Harry",
+                "last_updated": "2024-02-01 12:00:04",
+            },
+        ]
+
+        s3_client.put_object(
+            Bucket=bucket_name,
+            Key="department/2024-02-01-12:00:00",
+            Body=json.dumps(sample_data1),
+        )
+        s3_client.put_object(
+            Bucket=bucket_name,
+            Key="department/2024-02-01-12:00:02",
+            Body=json.dumps(sample_data2),
+        )
+
         yield s3_client
 
 
@@ -57,6 +93,16 @@ def test_get_new_file_name(s3_handler):
 
 def test_get_last_timestamp_no_file(mock_aws_setup, s3_handler):
     result = s3_handler.get_last_timestamp()
+    assert result is None
+
+
+def test_get_table_content_no_file(mock_aws_setup, s3_handler):
+    result = s3_handler.get_table_content("test")
+    assert result is None
+
+
+def test_get_full_table_content_no_file(mock_aws_setup, s3_handler):
+    result = s3_handler.get_full_table("table_name")
     assert result is None
 
 
@@ -83,6 +129,7 @@ def test_get_table_content_success(mock_aws_setup, s3_handler):
 def test_get_data_from_ingestion(s3_handler, mocker):
     mocker.patch.object(s3_handler, "get_last_timestamp", return_value="test")
     mocker.patch.object(s3_handler, "get_file_name", return_value="test")
+    mocker.patch.object(s3_handler, "get_full_table", return_value="test")
     mocker.patch.object(
         s3_handler,
         "get_table_content",
@@ -100,9 +147,33 @@ def test_get_data_from_ingestion(s3_handler, mocker):
         "purchase_order",
         "payment_type",
         "transaction",
+        "department_all_data",
+        "address_all_data",
     ]
 
     result = s3_handler.get_data_from_ingestion()
 
     for key in result.keys():
         assert key in expected_key_names
+
+
+def test_get_full_table(mock_aws_setup, s3_handler):
+    result = s3_handler.get_full_table("department_all_data")
+
+    assert result == [
+        {
+            "department_id": 3,
+            "name": "Harry",
+            "last_updated": "2024-02-01 12:00:04",
+        },
+        {
+            "department_id": 1,
+            "name": "Matthew",
+            "last_updated": "2024-02-01 12:00:01",
+        },
+        {
+            "department_id": 2,
+            "name": "Marcin",
+            "last_updated": "2024-02-01 12:00:00",
+        },
+    ]
