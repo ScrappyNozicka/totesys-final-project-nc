@@ -90,22 +90,6 @@ def test_save_last_timestamp_success(mock_aws_setup, s3_handler):
     assert body == timestamp
 
 
-def test_get_last_timestamp_no_file(mock_aws_setup, s3_handler):
-    result = s3_handler.get_last_timestamp()
-    assert result is None
-
-
-def test_get_last_timestamp_success(mock_aws_setup, s3_handler):
-    timestamp = "2025-02-26T12:00:00"
-    s3_client = boto3.client("s3", region_name="eu-west-2")
-    s3_client.put_object(
-        Bucket="test-bucket", Key="last_timestamp.txt", Body=timestamp
-    )
-
-    result = s3_handler.get_last_timestamp()
-    assert result == timestamp
-
-
 def test_process_and_upload(mocker, s3_handler, sample_dataframe):
     mock_upload_file = mocker.patch.object(s3_handler, "upload_file")
     mock_upload_file.return_value = {"Success": "File uploaded"}

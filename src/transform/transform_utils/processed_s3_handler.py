@@ -2,8 +2,12 @@ import boto3
 import os
 import io
 from dotenv import load_dotenv
-import botocore.exceptions
 import pandas as pd
+import logging
+
+logging.basicConfig(
+    level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
 
 class ProcessedS3Handler:
@@ -58,11 +62,17 @@ class ProcessedS3Handler:
                 Bucket=self.bucket_name, Key=file_name, Body=f
             )
 
+            logging.info(
+                f"INFO: File {file_name} has been added to {self.bucket_name}"
+            )
             return {
                 "Success": f"File {file_name} has been added to "
                 f"{self.bucket_name}"
             }
         except Exception as e:
+            logging.error(
+                f"ERROR: Unexpected error uploading file to s3 processed: {e}"
+            )
             return {"Error": str(e)}
 
     def save_last_timestamp(self, timestamp: str):
@@ -77,22 +87,10 @@ class ProcessedS3Handler:
                 f"{self.bucket_name}"
             }
         except Exception as e:
-            return {"Error": str(e)}
-
-    def get_last_timestamp(self) -> str | None:
-        try:
-            response = self.s3_client.get_object(
-                Bucket=self.bucket_name, Key="last_timestamp.txt"
+            logging.error(
+                f"ERROR: Unexpected error saving last timestamp: {e}"
             )
-            if "Body" in response:
-                return response["Body"].read().decode("utf-8").strip()
-        except botocore.exceptions.ClientError as e:
-            if e.response["Error"]["Code"] == "NoSuchKey":
-                print(f"ERROR: {e}")
-        except Exception as e:
-            # TODO: Replace with proper logging if needed
-            print(f"Unexpected error fetching last timestamp: {e}")
-        return None
+            return {"Error": str(e)}
 
     def process_and_upload(
         self, data: dict[pd.DataFrame], processing_timestamp: str
