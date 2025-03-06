@@ -4,6 +4,7 @@ import json
 from dotenv import load_dotenv
 import botocore.exceptions
 import logging
+import pandas as pd
 
 logging.basicConfig(
     level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s"
@@ -58,9 +59,38 @@ class IngestionS3Handler:
             if e.response["Error"]["Code"] == "NoSuchKey":
                 logging.info(f"INFO: {e} - No new data in table")
         except Exception as e:
-            logging.error(
-                f"ERROR: Unexpected error fetching last timestamp: {e}"
+            logging.error(f"ERROR: Unexpected error fetching last table: {e}")
+        return None
+
+    def get_full_table(self, table_name):
+        try:
+            table = table_name.split("_")[0]
+            files = self.s3_client.list_objects_v2(
+                Bucket=self.bucket_name, Prefix=table
             )
+            rows = []
+            for obj in files["Contents"]:
+                key = obj["Key"]
+
+                response = self.s3_client.get_object(
+                    Bucket=self.bucket_name, Key=key
+                )
+                if "Body" in response:
+                    file_data_json = response["Body"].read().decode("utf-8")
+                    file_data = json.loads(file_data_json)
+                    rows.extend(file_data)
+
+            df = pd.DataFrame(rows)
+            df = df.sort_values(by="last_updated", ascending=False)
+            df = df.drop_duplicates(subset=f"{table}_id", keep="first")
+
+            return_list = df.to_dict("records")
+            return return_list
+
+        except botocore.exceptions.ClientError as e:
+            logging.info(f"INFO: {e}")
+        except Exception as e:
+            logging.error(f"ERROR: Unexpected error fetching last table: {e}")
         return None
 
     def get_data_from_ingestion(self):
@@ -78,26 +108,32 @@ class IngestionS3Handler:
                 "purchase_order",
                 "payment_type",
                 "transaction",
+                "department_all_data",
+                "address_all_data",
             ]
             result = {}
 
         for table_name in table_names:
-            file_name = self.get_file_name(table_name, last_timestamp)
-            file_data_json = self.get_table_content(file_name)
-
-            if file_data_json is None:
-                logging.info(f"No data found for {table_name}")
-                continue
-            try:
-                file_data = json.loads(file_data_json)
+            if table_name in ["department_all_data", "address_all_data"]:
+                file_data = self.get_full_table(table_name)
                 result[table_name] = file_data
-            except json.JSONDecodeError as e:
-                logging.error(
-                    f"ERROR: decoding JSON for table {table_name}: {e}"
-                )
-            except Exception as e:
-                logging.error(
-                    f"ERROR: Unexpected error for table {table_name}: {e}"
-                )
+            else:
+                file_name = self.get_file_name(table_name, last_timestamp)
+                file_data_json = self.get_table_content(file_name)
+
+                if file_data_json is None:
+                    logging.info(f"No data found for {table_name}")
+                    continue
+                try:
+                    file_data = json.loads(file_data_json)
+                    result[table_name] = file_data
+                except json.JSONDecodeError as e:
+                    logging.error(
+                        f"ERROR: decoding JSON for table {table_name}: {e}"
+                    )
+                except Exception as e:
+                    logging.error(
+                        f"ERROR: Unexpected error for table {table_name}: {e}"
+                    )
 
         return result
