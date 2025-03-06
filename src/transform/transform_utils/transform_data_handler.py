@@ -1,5 +1,6 @@
 import pandas as pd
 import json
+import boto3
 from src.transform.transform_utils.ingestion_s3_handler import IngestionS3Handler
 
 
@@ -36,7 +37,7 @@ class PandaTransformation:
             df_staff = pd.DataFrame(raw_data["staff"])
             del df_staff['created_at']
             del df_staff['last_updated']
-            df_department = pd.DataFrame(raw_data["department"])
+            df_department = pd.DataFrame(raw_data["department_all_data"])
             merged_df = pd.merge(df_staff, df_department, on="department_id", how="left")
             del merged_df['department_id']
             del merged_df['manager']
@@ -64,7 +65,7 @@ class PandaTransformation:
             del df_counterparty['created_at']
             del df_counterparty['last_updated']
             df_counterparty.rename(columns = {'legal_address_id':'address_id'}, inplace = True)
-            df_address = pd.DataFrame(raw_data["address"])
+            df_address = pd.DataFrame(raw_data["address_all_data"])
             merged_df = pd.merge(df_counterparty, df_address, on="address_id", how="left")
             merged_df.rename(columns = {'address_line_1':'counterparty_legal_address_line_1', 'address_line_2':'counterparty_legal_address_line_2', 'district':'counterparty_legal_district', 'city':'counterparty_legal_city', 'postal_code':'counterparty_legal_postal_code', 'country':'counterparty_legal_country', 'phone':'counterparty_legal_phone_number'}, inplace = True)
             return merged_df[['counterparty_id', 'counterparty_legal_name', 'counterparty_legal_address_line_1','counterparty_legal_address_line_2', 'counterparty_legal_district', 'counterparty_legal_city', 'counterparty_legal_postal_code', 'counterparty_legal_country', 'counterparty_legal_phone_number']]
@@ -84,7 +85,11 @@ class PandaTransformation:
         except:
             return None
     def transform_date_data(self):
-        try:
+        s3_client = boto3.client('s3')
+        bucket_name="{var.processed_bucket}"
+        folder_name="date/"
+        response = s3_client.list_objects_v2(Bucket=bucket_name, Prefix = folder_name)
+        if 'contents' in response and len(response['contents']) > 0:
             start_date = "2022-01-01"
             end_date = "2047-12-31"
             date_range = pd.date_range(start=start_date, end=end_date, freq="D")
@@ -98,9 +103,8 @@ class PandaTransformation:
             dim_date["month_name"] = dim_date["date_id"].dt.strftime("%B")
             dim_date["quarter"] = dim_date["date_id"].dt.quarter
             return dim_date
-        except:
+        else:
             return None
-    
     
     def returns_dictionary_of_dataframes(self):
         try:

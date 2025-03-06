@@ -41,7 +41,7 @@ def mock_ingestion_s3_handler(mocker):
                 "last_updated": "2022-11-03 14:20:51.563",
             },
         ],
-        "department": [
+        "department_all_data": [
             {
                 "department_id": 1,
                 "department_name": "Sales",

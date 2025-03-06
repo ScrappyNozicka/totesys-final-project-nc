@@ -71,6 +71,32 @@ def mock_ingestion_s3_handler(mocker, mock_currency_lookup):
                 "last_updated": " 2022-11-03 14:20:49.962",
             },
         ],
+        "address_all_data": [
+            {
+                "address_id": 1,
+                "address_line_1": "6826 Herzog Via",
+                "address_line_2": "",
+                "district": "Avon",
+                "city": "New Patienceburgh",
+                "postal_code": "28441",
+                "country": "Turkey",
+                "phone": "1803 637401",
+                "created_at": "2022-11-03 14:20:49.962",
+                "last_updated": "2022-11-03 14:20:49.962",
+            },
+            {
+                "address_id": 2,
+                "address_line_1": "179 Alexie Cliffs",
+                "address_line_2": "",
+                "district": "",
+                "city": "Aliso Viejo",
+                "postal_code": "99305-7380",
+                "country": "San Marino",
+                "phone": "9621 880720",
+                "created_at": "2022-11-03 14:20:49.962",
+                "last_updated": " 2022-11-03 14:20:49.962",
+            },
+        ],
         "staff": [
             {
                 "staff_id": 1,
@@ -91,7 +117,7 @@ def mock_ingestion_s3_handler(mocker, mock_currency_lookup):
                 "last_updated": "2022-11-03 14:20:51.563",
             },
         ],
-        "department": [
+        "department_all_data": [
             {
                 "department_id": 1,
                 "department_name": "Sales",

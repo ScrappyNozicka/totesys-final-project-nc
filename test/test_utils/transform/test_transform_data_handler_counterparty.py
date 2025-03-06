@@ -37,7 +37,7 @@ def mock_ingestion_s3_handler(mocker):
                 "last_updated": "2022-11-03 14:20:51.563",
             },
         ],
-        "address": [
+        "address_all_data": [
             {
                 "address_id": 1,
                 "address_line_1": "6826 Herzog Via",
