@@ -2,6 +2,7 @@ from pg8000.native import Connection
 import os
 from dotenv import load_dotenv
 
+
 load_dotenv()
 
 def create_conn():
