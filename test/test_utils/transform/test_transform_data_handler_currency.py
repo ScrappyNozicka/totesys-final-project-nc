@@ -1,6 +1,11 @@
 import pytest
 import pandas as pd
-from src.transform.transform_utils.transform_data_handler import PandaTransformation
+from src.transform.transform_utils.transform_data_handler import (
+    PandaTransformation,
+)
+from src.transform.transform_utils.ingestion_s3_handler import (
+    IngestionS3Handler,
+)
 
 
 @pytest.fixture(autouse=True)
@@ -14,13 +19,9 @@ def mock_aws_credentials(monkeypatch):
 
 
 @pytest.fixture
-def mock_ingestion_s3_handler(mocker):
-    """Mock IngestionS3Handler to return fake currency data."""
-    mock_handler = mocker.patch(
-        "src.transform.transform_utils.transform_data_handler.IngestionS3Handler"
-    )
-    mock_instance = mock_handler.return_value
-    mock_instance.get_data_from_ingestion.return_value = {
+def mock_data():
+    """Returns fake currency data."""
+    mock_data = {
         "currency": [
             {
                 "currency_code": "USD",
@@ -34,7 +35,7 @@ def mock_ingestion_s3_handler(mocker):
             },
         ]
     }
-    return mock_instance
+    return mock_data
 
 
 @pytest.fixture
@@ -42,15 +43,21 @@ def mock_currency_lookup(mocker):
     """Mock JSON currency lookup file."""
     mocker.patch(
         "builtins.open",
-        mocker.mock_open(read_data='{"USD": "United States Dollar", "EUR": "Euro"}'),
+        mocker.mock_open(
+            read_data='{"USD": "United States Dollar", "EUR": "Euro"}'
+        ),
     )
     mocker.patch(
-        "json.load", return_value={"USD": "United States Dollar", "EUR": "Euro"}
+        "json.load",
+        return_value={"USD": "United States Dollar", "EUR": "Euro"},
     )
 
 
-def test_trans_currency_data(mock_ingestion_s3_handler, mock_currency_lookup):
+def test_trans_currency_data(mock_data, mocker, mock_currency_lookup):
     """Test currency data transformation."""
+    mocker.patch.object(
+        IngestionS3Handler, "get_data_from_ingestion", return_value=mock_data
+    )
     test_var = PandaTransformation()
     df_result = test_var.transform_currency_data()
     expected_df = pd.DataFrame(

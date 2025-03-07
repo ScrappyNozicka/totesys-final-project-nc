@@ -1,6 +1,11 @@
 import pytest
 import pandas as pd
-from src.transform.transform_utils.transform_data_handler import PandaTransformation
+from src.transform.transform_utils.transform_data_handler import (
+    PandaTransformation,
+)
+from src.transform.transform_utils.ingestion_s3_handler import (
+    IngestionS3Handler,
+)
 
 
 @pytest.fixture(autouse=True)
@@ -14,13 +19,9 @@ def mock_aws_credentials(monkeypatch):
 
 
 @pytest.fixture
-def mock_ingestion_s3_handler(mocker):
-    """Mock IngestionS3Handler to return fake location data."""
-    mock_handler = mocker.patch(
-        "src.transform.transform_utils.transform_data_handler.IngestionS3Handler"
-    )
-    mock_instance = mock_handler.return_value
-    mock_instance.get_data_from_ingestion.return_value = {
+def mock_data():
+    """Returns fake location data."""
+    mock_data = {
         "address": [
             {
                 "address_id": 1,
@@ -48,11 +49,14 @@ def mock_ingestion_s3_handler(mocker):
             },
         ]
     }
-    return mock_instance
+    return mock_data
 
 
-def test_transform_currency_data(mock_ingestion_s3_handler):
+def test_transform_currency_data(mock_data, mocker):
     """Test location data transformation."""
+    mocker.patch.object(
+        IngestionS3Handler, "get_data_from_ingestion", return_value=mock_data
+    )
     test_variable = PandaTransformation()
     df_result = test_variable.transform_location_data()
     expected_df = pd.DataFrame(

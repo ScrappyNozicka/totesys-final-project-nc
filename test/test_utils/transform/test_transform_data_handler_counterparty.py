@@ -1,6 +1,13 @@
 import pytest
 import pandas as pd
-from src.transform.transform_utils.transform_data_handler import PandaTransformation
+from src.transform.transform_utils.transform_data_handler import (
+    PandaTransformation,
+)
+from src.transform.transform_utils.ingestion_s3_handler import (
+    IngestionS3Handler,
+)
+
+
 @pytest.fixture(autouse=True)
 def mock_aws_credentials(monkeypatch):
     """Mocked AWS Credentials for moto."""
@@ -9,14 +16,12 @@ def mock_aws_credentials(monkeypatch):
     monkeypatch.setenv("AWS_SECURITY_TOKEN", "test")
     monkeypatch.setenv("AWS_SESSION_TOKEN", "test")
     monkeypatch.setenv("AWS_DEFAULT_REGION", "eu-west-2")
+
+
 @pytest.fixture
-def mock_ingestion_s3_handler(mocker):
-    """Mock IngestionS3Handler to return fake counterparty data."""
-    mock_handler = mocker.patch(
-        "src.transform.transform_utils.transform_data_handler.IngestionS3Handler"
-    )
-    mock_instance = mock_handler.return_value
-    mock_instance.get_data_from_ingestion.return_value = {
+def mock_data():
+    """Returns fake counterparty data."""
+    mock_data = {
         "counterparty": [
             {
                 "counterparty_id": 1,
@@ -64,10 +69,14 @@ def mock_ingestion_s3_handler(mocker):
             },
         ],
     }
-    return mock_instance
-# @pytest.fixture
-def test_transform_counterparty_data(mock_ingestion_s3_handler):
+    return mock_data
+
+
+def test_transform_counterparty_data(mock_data, mocker):
     """Test counterparty data transformation."""
+    mocker.patch.object(
+        IngestionS3Handler, "get_data_from_ingestion", return_value=mock_data
+    )
     test_variable = PandaTransformation()
     df_result = test_variable.transform_counterparty_data()
     expected_df = pd.DataFrame(

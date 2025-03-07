@@ -1,5 +1,10 @@
 import pytest
-from src.transform.transform_utils.transform_data_handler import PandaTransformation
+from src.transform.transform_utils.transform_data_handler import (
+    PandaTransformation,
+)
+from src.transform.transform_utils.ingestion_s3_handler import (
+    IngestionS3Handler,
+)
 
 
 @pytest.fixture(autouse=True)
@@ -10,6 +15,7 @@ def mock_aws_credentials(monkeypatch):
     monkeypatch.setenv("AWS_SECURITY_TOKEN", "test")
     monkeypatch.setenv("AWS_SESSION_TOKEN", "test")
     monkeypatch.setenv("AWS_DEFAULT_REGION", "eu-west-2")
+    monkeypatch.setenv("PROCESSED_S3_BUCKET_NAME", "test")
 
 
 @pytest.fixture
@@ -18,28 +24,21 @@ def mock_currency_lookup(mocker):
     mocker.patch(
         "builtins.open",
         mocker.mock_open(
-            read_data='{"USD": "United States Dollar", "EUR": "Euro"}'),
+            read_data='{"USD": "United States Dollar", "EUR": "Euro"}'
+        ),
     )
     mocker.patch(
-        "json.load", return_value={"USD": "United States Dollar", "EUR": "Euro"}
+        "json.load",
+        return_value={"USD": "United States Dollar", "EUR": "Euro"},
     )
 
 
-@pytest.fixture
-def mock_ingestion_s3_handler(mocker, mock_currency_lookup):
-    """Mock IngestionS3Handler to return fake data."""
-    mock_handler = mocker.patch(
-        "src.transform.transform_utils.transform_data_handler.IngestionS3Handler"
-    )
-    mock_instance = mock_handler.return_value
-    mock_instance.get_data_from_ingestion.return_value = None
-    return mock_instance
-
-
-def test_dataframes_dictionary_handles_empty_lists(mock_ingestion_s3_handler):
+def test_dataframes_dictionary_handles_empty_lists(mocker):
     """Test if function returns None if all dataframes are empty."""
+    mocker.patch.object(
+        IngestionS3Handler, "get_data_from_ingestion", return_value=None
+    )
     test_variable = PandaTransformation()
-    # test_variable.returns_dictionary_of_dataframes()
     result = test_variable.returns_dictionary_of_dataframes()
     expected = None
     assert result == expected
