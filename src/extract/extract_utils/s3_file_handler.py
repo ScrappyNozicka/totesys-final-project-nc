@@ -78,7 +78,7 @@ class S3FileHandler:
                 return response["Body"].read().decode("utf-8").strip()
         except botocore.exceptions.ClientError as e:
             if e.response["Error"]["Code"] == "NoSuchKey":
-                print(f"ERROR: {e}")
+                print(f"INFO: {e}")
         except Exception as e:
             # TODO: Replace with proper logging if needed
             print(f"Unexpected error fetching last timestamp: {e}")

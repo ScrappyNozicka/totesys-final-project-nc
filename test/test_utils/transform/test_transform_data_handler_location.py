@@ -3,19 +3,6 @@ import pandas as pd
 from src.transform.transform_utils.transform_data_handler import (
     PandaTransformation,
 )
-from src.transform.transform_utils.ingestion_s3_handler import (
-    IngestionS3Handler,
-)
-
-
-@pytest.fixture(autouse=True)
-def mock_aws_credentials(monkeypatch):
-    """Mocked AWS Credentials for moto."""
-    monkeypatch.setenv("AWS_ACCESS_KEY_ID", "test")
-    monkeypatch.setenv("AWS_SECRET_ACCESS_KEY", "test")
-    monkeypatch.setenv("AWS_SECURITY_TOKEN", "test")
-    monkeypatch.setenv("AWS_SESSION_TOKEN", "test")
-    monkeypatch.setenv("AWS_DEFAULT_REGION", "eu-west-2")
 
 
 @pytest.fixture
@@ -54,8 +41,10 @@ def mock_data():
 
 def test_transform_currency_data(mock_data, mocker):
     """Test location data transformation."""
-    mocker.patch.object(
-        IngestionS3Handler, "get_data_from_ingestion", return_value=mock_data
+    mocker.patch(
+        "src.transform.transform_utils.transform_data_handler"
+        ".IngestionS3Handler.get_data_from_ingestion",
+        return_value=mock_data,
     )
     test_variable = PandaTransformation()
     df_result = test_variable.transform_location_data()

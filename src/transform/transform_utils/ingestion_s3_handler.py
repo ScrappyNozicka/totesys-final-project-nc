@@ -94,46 +94,45 @@ class IngestionS3Handler:
         return None
 
     def get_data_from_ingestion(self):
+        table_names = [
+            "counterparty",
+            "currency",
+            "department",
+            "design",
+            "staff",
+            "sales_order",
+            "address",
+            "payment",
+            "purchase_order",
+            "payment_type",
+            "transaction",
+            "department_all_data",
+            "address_all_data",
+        ]
+        result = {}
         last_timestamp = self.get_last_timestamp()
+
         if last_timestamp:
-            table_names = [
-                "counterparty",
-                "currency",
-                "department",
-                "design",
-                "staff",
-                "sales_order",
-                "address",
-                "payment",
-                "purchase_order",
-                "payment_type",
-                "transaction",
-                "department_all_data",
-                "address_all_data",
-            ]
-            result = {}
 
-        for table_name in table_names:
-            if table_name in ["department_all_data", "address_all_data"]:
-                file_data = self.get_full_table(table_name)
-                result[table_name] = file_data
-            else:
-                file_name = self.get_file_name(table_name, last_timestamp)
-                file_data_json = self.get_table_content(file_name)
-
-                if file_data_json is None:
-                    logging.info(f"No data found for {table_name}")
-                    continue
-                try:
-                    file_data = json.loads(file_data_json)
+            for table_name in table_names:
+                if table_name in ["department_all_data", "address_all_data"]:
+                    file_data = self.get_full_table(table_name)
                     result[table_name] = file_data
-                except json.JSONDecodeError as e:
-                    logging.error(
-                        f"ERROR: decoding JSON for table {table_name}: {e}"
-                    )
-                except Exception as e:
-                    logging.error(
-                        f"ERROR: Unexpected error for table {table_name}: {e}"
-                    )
+                else:
+                    file_name = self.get_file_name(table_name, last_timestamp)
+                    file_data_json = self.get_table_content(file_name)
+
+                    if file_data_json is None:
+                        logging.info(f"No data found for {table_name}")
+                        continue
+                    try:
+                        file_data = json.loads(file_data_json)
+                        result[table_name] = file_data
+                    except json.JSONDecodeError as e:
+                        logging.error(
+                            f"ERROR: decoding JSON for table {table_name}: {e}"
+                        )
+                    except Exception as e:
+                        logging.error(f"ERROR: {e} for table - {table_name}")
 
         return result

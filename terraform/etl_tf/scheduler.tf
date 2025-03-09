@@ -8,5 +8,6 @@ resource "aws_scheduler_schedule" "state_machine_scheduler" {
     role_arn = aws_iam_role.scheduler_role.arn
     arn      = aws_sfn_state_machine.sfn_state_machine.arn
   }
+  depends_on = [aws_sfn_state_machine.sfn_state_machine]
 }
 

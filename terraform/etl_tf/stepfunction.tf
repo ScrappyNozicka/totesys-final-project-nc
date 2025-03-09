@@ -7,5 +7,6 @@ resource "aws_sfn_state_machine" "sfn_state_machine" {
       function_name_2 = var.transform_lambda_name,
       function_name_3 = var.load_lambda_name
   })
-  role_arn = aws_iam_role.step_function_role.arn
+  depends_on = [aws_lambda_function.extract_lambda, aws_lambda_function.transform_lambda, aws_lambda_function.load_lambda]
+  role_arn   = aws_iam_role.step_function_role.arn
 }

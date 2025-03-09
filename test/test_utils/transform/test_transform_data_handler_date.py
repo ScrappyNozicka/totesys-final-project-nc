@@ -3,53 +3,22 @@ import pandas as pd
 from src.transform.transform_utils.transform_data_handler import (
     PandaTransformation,
 )
-from src.transform.transform_utils.ingestion_s3_handler import (
-    IngestionS3Handler,
-)
 
 
 @pytest.fixture
-def mock_sales_order_data():
-    return {
-        "sales_order": [
-            {
-                "created_at": "2024-01-01 10:00:00",
-                "last_updated": "2024-01-02 11:00:00",
-                "agreed_payment_date": "2024-01-03 12:00:00",
-                "agreed_delivery_date": "2024-01-04 13:00:00",
-            },
-            {
-                "created_at": "2024-01-01 10:00:00",
-                "last_updated": "2024-01-05 14:00:00",
-                "agreed_payment_date": None,
-                "agreed_delivery_date": "2024-01-01 15:00:00",
-            },
-        ]
-    }
+def transformator():
+    return PandaTransformation()
 
 
-def test_transform_date_data(mocker, mock_sales_order_data):
-    mocker.patch.object(
-        IngestionS3Handler,
-        "get_data_from_ingestion",
-        return_value=mock_sales_order_data,
-    )
-    test_variable = PandaTransformation()
-    df_result = test_variable.transform_date_data()
-    expected_list = [
-        "2024-01-01 10:00:00",
-        "2024-01-02 11:00:00",
-        "2024-01-03 12:00:00",
-        "2024-01-04 13:00:00",
-        "2024-01-05 14:00:00",
-        "2024-01-01 15:00:00",
-    ]
-    expected = pd.to_datetime(expected_list)
+def test_transform_date_data_range(transformator):
+    df_result = transformator.transform_date_data()
 
-    assert df_result["date_id"].isin(expected).all()
+    assert df_result["date_id"].iloc[0] == pd.to_datetime("2022-01-01")
+    assert df_result["date_id"].iloc[-1] == pd.to_datetime("2047-12-31")
 
-    print(df_result.columns.to_list())
 
+def test_transform_date_data_valid_columns(transformator):
+    df_result = transformator.transform_date_data()
     expected_columns = [
         "date_id",
         "year",
@@ -62,3 +31,17 @@ def test_transform_date_data(mocker, mock_sales_order_data):
     ]
 
     assert df_result.columns.to_list() == expected_columns
+
+
+def test_transform_date_data_random_id_in_range(transformator):
+    df_result = transformator.transform_date_data()
+    expected_list = [
+        "2024-01-01",
+        "2024-01-02",
+        "2024-01-03",
+        "2024-01-04",
+        "2024-01-05",
+    ]
+    expected = pd.to_datetime(expected_list)
+
+    assert df_result["date_id"].isin(expected).any()
