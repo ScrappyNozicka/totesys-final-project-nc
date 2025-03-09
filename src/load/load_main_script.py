@@ -1,16 +1,18 @@
 import boto3
 import os
-import json
 from dotenv import load_dotenv
 import botocore.exceptions
-from warehouse_connection import create_conn
+from src.load.warehouse_connection import create_conn
+import pandas as pd
+import io
+
 
 
 class DataWarehouseLoader:
     def __init__(self):
         load_dotenv()
         self.s3_client = boto3.client("s3")
-        self.processing_bucket = os.getenv("PROCESSED_S3_BUCKET_NAME")
+        self.processing_bucket = os.getenv('PROCESSED_TEST')
         self.timestamp_file_key = "last_inserted_timestamp.txt"
         self.conn = create_conn()
         
@@ -23,7 +25,7 @@ class DataWarehouseLoader:
         except botocore.exceptions.ClientError as e:
             if e.response["Error"]["Code"] == "NoSuchKey":
                 print("No previous timestamp found, assuming first run.")
-                return "0000-00-00 00:00:00" 
+                return "0000-00-00 00:00:00:00000" 
         except Exception as e:
             print(f"Unexpected error fetching  timestamp: {e}")
         return None
@@ -40,34 +42,50 @@ class DataWarehouseLoader:
         """Retrieve list of files in S3 that have a timestamp newer than the last inserted timestamp."""
         try:
             response = self.s3_client.list_objects_v2(Bucket=self.processing_bucket)
-            files = [obj["Key"] for obj in response.get("Contents", []) if obj["Key"].endswith(".json")]
-            return [f for f in files if f.split("/")[-1].replace(".json", "") > last_timestamp]
+            files = [obj["Key"] for obj in response.get("Contents", []) if obj["Key"].endswith(".parquet.gzip")]
+            return [f for f in files if f.split("/")[-1].replace(".parquet.gzip", "") > last_timestamp]
         except Exception as e:
             print(f"Error fetching file list: {e}")
             return []
-        
+            
     def insert_file_to_warehouse(self, file_key: str):
-        """Load data from a JSON file in S3 into the data warehouse."""
+        """Load data from a Parquet file in S3 into the data warehouse."""
         try:
             response = self.s3_client.get_object(Bucket=self.processing_bucket, Key=file_key)
-            data = json.loads(response["Body"].read().decode("utf-8"))
-            table_name = file_key.split("/")[0]  
+            data = pd.read_parquet(io.BytesIO(response["Body"].read()), engine="pyarrow")
+            table_dict = data.to_dict('records')
+         
+            table_name = file_key.split("/")[0]
+            columns = ", ".join(data.columns)
+           
+            query = f"INSERT INTO {table_name} ({columns}) VALUES "
+     
+            args = {}
+            values_list = []
 
-            placeholders = ", ".join(["%s"] * len(data[0]))
-            columns = ", ".join(data[0].keys())  
-            query = f"INSERT INTO {table_name} ({columns}) VALUES ({placeholders})"
+            for index, row in enumerate(table_dict):
+                placeholders = []
+                for column in row:  
+                    placeholder = f":{column}_{index}"
+                    placeholders.append(placeholder)
+                    args[f'{column}_{index}'] = row[column]
+                values_list.append(f"({', '.join(placeholders)})")
 
-            for row in data:
-                values = tuple(row.values())
-                self.conn.run(query, values)
+            values_str = ', '.join(values_list) 
+            query += values_str + ';'  
+            self.conn.run(query, **args)
+            print(f"Inserted {len(data)} rows into {table_name}.")
+
         except Exception as e:
             print(f"Error inserting data for {file_key}: {e}")
-            return None   
+            return None
         
     def process_new_files(self):
         """Process new files and update the last inserted timestamp."""
         last_timestamp = self.get_last_inserted_timestamp()
+        
         new_files = self.get_new_files(last_timestamp)
+       
 
         if not new_files:
             print("No new data to insert.")
@@ -78,7 +96,8 @@ class DataWarehouseLoader:
             self.insert_file_to_warehouse(file_key)
   
 
-        latest_insertion_timestamp = max([f.split("/")[-1].replace(".json", "") for f in new_files])
+        latest_insertion_timestamp = max([f.split("/")[-1].replace(".parquet.gzip", "") for f in new_files])
+        print(f"latest_insertion_timestamp: {latest_insertion_timestamp}")
         self.update_last_inserted_timestamp(latest_insertion_timestamp)
         print(f"Updated last inserted timestamp to: {latest_insertion_timestamp}")
-    
+
