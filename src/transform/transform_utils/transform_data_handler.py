@@ -1,20 +1,22 @@
 import pandas as pd
 import json
-import boto3
-from src.transform.transform_utils.ingestion_s3_handler import (
+from transform_utils.ingestion_s3_handler import (
     IngestionS3Handler,
 )
 
 
 class PandaTransformation:
 
+    def __init__(self):
+        self.ingestion_handler = IngestionS3Handler()
+        self.raw_data = self.ingestion_handler.get_data_from_ingestion()
+
     def transform_currency_data(self):
         try:
-            ingestion_handler = IngestionS3Handler()
-            raw_data = ingestion_handler.get_data_from_ingestion()
             with open("currencies_lookup.json", "r") as file:
                 currencies_lookup = json.load(file)
-            df_currency = pd.DataFrame(raw_data["currency"])
+
+            df_currency = pd.DataFrame(self.raw_data["currency"])
             df_currency.drop(
                 columns=["created_at", "last_updated"], inplace=True
             )
@@ -28,9 +30,7 @@ class PandaTransformation:
 
     def transform_location_data(self):
         try:
-            ingestion_handler = IngestionS3Handler()
-            raw_data = ingestion_handler.get_data_from_ingestion()
-            df_location = pd.DataFrame(raw_data["address"])
+            df_location = pd.DataFrame(self.raw_data["address"])
             del df_location["created_at"]
             del df_location["last_updated"]
             df_location.rename(
@@ -43,12 +43,10 @@ class PandaTransformation:
 
     def transform_staff_data(self):
         try:
-            ingestion_handler = IngestionS3Handler()
-            raw_data = ingestion_handler.get_data_from_ingestion()
-            df_staff = pd.DataFrame(raw_data["staff"])
+            df_staff = pd.DataFrame(self.raw_data["staff"])
             del df_staff["created_at"]
             del df_staff["last_updated"]
-            df_department = pd.DataFrame(raw_data["department_all_data"])
+            df_department = pd.DataFrame(self.raw_data["department_all_data"])
             merged_df = pd.merge(
                 df_staff, df_department, on="department_id", how="left"
             )
@@ -72,9 +70,7 @@ class PandaTransformation:
 
     def transform_design_data(self):
         try:
-            ingestion_handler = IngestionS3Handler()
-            raw_data = ingestion_handler.get_data_from_ingestion()
-            df_design = pd.DataFrame(raw_data["design"])
+            df_design = pd.DataFrame(self.raw_data["design"])
             del df_design["created_at"]
             del df_design["last_updated"]
             return df_design
@@ -84,15 +80,13 @@ class PandaTransformation:
 
     def transform_counterparty_data(self):
         try:
-            ingestion_handler = IngestionS3Handler()
-            raw_data = ingestion_handler.get_data_from_ingestion()
-            df_counterparty = pd.DataFrame(raw_data["counterparty"])
+            df_counterparty = pd.DataFrame(self.raw_data["counterparty"])
             del df_counterparty["created_at"]
             del df_counterparty["last_updated"]
             df_counterparty.rename(
                 columns={"legal_address_id": "address_id"}, inplace=True
             )
-            df_address = pd.DataFrame(raw_data["address_all_data"])
+            df_address = pd.DataFrame(self.raw_data["address_all_data"])
             merged_df = pd.merge(
                 df_counterparty, df_address, on="address_id", how="left"
             )
@@ -127,9 +121,7 @@ class PandaTransformation:
 
     def transform_sales_order_data(self):
         try:
-            ingestion_handler = IngestionS3Handler()
-            raw_data = ingestion_handler.get_data_from_ingestion()
-            df_sales_order = pd.DataFrame(raw_data["sales_order"])
+            df_sales_order = pd.DataFrame(self.raw_data["sales_order"])
             df_sales_order[["created_date", "created_time"]] = df_sales_order[
                 "created_at"
             ].str.split(" ", n=1, expand=True)
@@ -163,29 +155,12 @@ class PandaTransformation:
 
     def transform_date_data(self):
         try:
-            ingestion_handler = IngestionS3Handler()
-            raw_data = ingestion_handler.get_data_from_ingestion()
-            df_sales_order = pd.DataFrame(raw_data["sales_order"])
-
-            date_columns = [
-                "created_at",
-                "last_updated",
-                "agreed_payment_date",
-                "agreed_delivery_date",
-            ]
-            all_dates = pd.Series()
-            for col in date_columns:
-                df_sales_order[col] = pd.to_datetime(
-                    df_sales_order[col], errors="coerce"
-                )
-                all_dates = pd.concat([all_dates, df_sales_order[col]])
-
-            dates = all_dates.dropna()
-            dates = dates.drop_duplicates()
-            dates = dates.sort_values()
-            dates = dates.reset_index(drop=True)
-
-            dim_date = pd.DataFrame({"date_id": dates})
+            start_date = "2022-01-01"
+            end_date = "2047-12-31"
+            date_range = pd.date_range(
+                start=start_date, end=end_date, freq="D"
+            )
+            dim_date = pd.DataFrame({"date_id": date_range})
             dim_date["year"] = dim_date["date_id"].dt.year
             dim_date["month"] = dim_date["date_id"].dt.month
             dim_date["day"] = dim_date["date_id"].dt.day
@@ -193,7 +168,6 @@ class PandaTransformation:
             dim_date["day_name"] = dim_date["date_id"].dt.strftime("%A")
             dim_date["month_name"] = dim_date["date_id"].dt.strftime("%B")
             dim_date["quarter"] = dim_date["date_id"].dt.quarter
-
             return dim_date
 
         except Exception as e:
@@ -201,36 +175,46 @@ class PandaTransformation:
             return None
 
     def returns_dictionary_of_dataframes(self):
-        s3_client = boto3.client("s3")
         try:
             transform_currency_data = (
                 PandaTransformation.transform_currency_data
             )
             df_currency = transform_currency_data(self)
+            print("created df_currencies")
 
             transform_location_data = (
                 PandaTransformation.transform_location_data
             )
             df_location = transform_location_data(self)
+            print("created df_location")
 
             transform_staff_data = PandaTransformation.transform_staff_data
             df_staff = transform_staff_data(self)
+            print("created df_staff")
 
             transform_design_data = PandaTransformation.transform_design_data
             df_design = transform_design_data(self)
+            print("created df_design")
 
             transform_counterparty_data = (
                 PandaTransformation.transform_counterparty_data
             )
             df_counterparty = transform_counterparty_data(self)
+            print("created df_counterparty")
 
             transform_sales_order_data = (
                 PandaTransformation.transform_sales_order_data
             )
             df_sales_order = transform_sales_order_data(self)
+            print("created df_sales_order")
+            print(df_sales_order)
 
-            transform_date_data = PandaTransformation.transform_date_data
-            df_date = transform_date_data(self, s3_client)
+            if df_sales_order is not None and not df_sales_order.empty:
+                transform_date_data = PandaTransformation.transform_date_data
+                df_date = transform_date_data(self)
+                print("created df_date")
+            else:
+                df_date = None
 
             initial_output = {
                 "dim_currency": df_currency,

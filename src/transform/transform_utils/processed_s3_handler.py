@@ -54,10 +54,14 @@ class ProcessedS3Handler:
             file_name = self.get_new_file_name(
                 table_name, processing_timestamp
             )
+            print(f"trying to upload file: {file_name}")
             f = io.BytesIO()
             data_frame.to_parquet(f, compression="gzip")
             f.seek(0)
 
+            print(f"Size of DataFrame: {data_frame.shape}")
+
+            print("compression to gzip success, starting put_object")
             self.s3_client.put_object(
                 Bucket=self.bucket_name, Key=file_name, Body=f
             )
@@ -103,10 +107,12 @@ class ProcessedS3Handler:
             data (dict[pd.DataFrame]): Data from S3 Ingestion
             processing_timestamp (str): Timestamp string of processing
         """
-
+        print("Inside process and upload")
         for table_name, data_frame in data.items():
-
+            print(table_name)
             if not data_frame.empty:
+                print("inside if statement")
                 self.upload_file(data_frame, table_name, processing_timestamp)
+                print(f"FILE UPLOADED FOR TABLE: {table_name}")
 
         self.save_last_timestamp(processing_timestamp)
