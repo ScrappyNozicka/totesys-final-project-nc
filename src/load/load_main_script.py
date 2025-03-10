@@ -8,13 +8,15 @@ import io
 
 
 
+
 class DataWarehouseLoader:
     def __init__(self):
         load_dotenv()
         self.s3_client = boto3.client("s3")
-        self.processing_bucket = os.getenv('PROCESSED_TEST')
+        self.processing_bucket = os.getenv('PROCESSED_S3_BUCKET_NAME')
         self.timestamp_file_key = "last_inserted_timestamp.txt"
-        self.conn = create_conn()
+        self.engine = create_conn()
+
         
     def get_last_inserted_timestamp(self) -> str:
         """Retrieve the last inserted timestamp from S3."""
@@ -47,33 +49,15 @@ class DataWarehouseLoader:
         except Exception as e:
             print(f"Error fetching file list: {e}")
             return []
-            
+        
     def insert_file_to_warehouse(self, file_key: str):
         """Load data from a Parquet file in S3 into the data warehouse."""
         try:
             response = self.s3_client.get_object(Bucket=self.processing_bucket, Key=file_key)
-            data = pd.read_parquet(io.BytesIO(response["Body"].read()), engine="pyarrow")
-            table_dict = data.to_dict('records')
-         
+            data = pd.read_parquet(io.BytesIO(response["Body"].read()), engine="pyarrow")   
             table_name = file_key.split("/")[0]
-            columns = ", ".join(data.columns)
-           
-            query = f"INSERT INTO {table_name} ({columns}) VALUES "
-     
-            args = {}
-            values_list = []
 
-            for index, row in enumerate(table_dict):
-                placeholders = []
-                for column in row:  
-                    placeholder = f":{column}_{index}"
-                    placeholders.append(placeholder)
-                    args[f'{column}_{index}'] = row[column]
-                values_list.append(f"({', '.join(placeholders)})")
-
-            values_str = ', '.join(values_list) 
-            query += values_str + ';'  
-            self.conn.run(query, **args)
+            data.to_sql(table_name, self.engine, if_exists='append', index=False, chunksize=1000)
             print(f"Inserted {len(data)} rows into {table_name}.")
 
         except Exception as e:
@@ -101,3 +85,6 @@ class DataWarehouseLoader:
         self.update_last_inserted_timestamp(latest_insertion_timestamp)
         print(f"Updated last inserted timestamp to: {latest_insertion_timestamp}")
 
+# batch = DataWarehouseLoader()
+# test = batch.process_new_files()
+# print(test)
