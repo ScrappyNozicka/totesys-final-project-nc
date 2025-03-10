@@ -1,7 +1,9 @@
 import pandas as pd
 import json
+import os
 import boto3
 from botocore.exceptions import ClientError
+from dotenv import load_dotenv
 from transform_utils.ingestion_s3_handler import (
     IngestionS3Handler,
 )
@@ -10,6 +12,10 @@ from transform_utils.ingestion_s3_handler import (
 class PandaTransformation:
 
     def __init__(self):
+        load_dotenv()
+        self.bucket_name = os.getenv("S3_BUCKET_NAME")
+        self.prefix = os.getenv("S3_FOLDER")
+        self.s3_client = boto3.client("s3")
         self.ingestion_handler = IngestionS3Handler()
         self.raw_data = self.ingestion_handler.get_data_from_ingestion()
 
@@ -176,11 +182,11 @@ class PandaTransformation:
             print(f"Error creating dim_date: {e}")
             return None
 
-    def check_date_file_exists(self, bucket_name, file_name):
+    def check_date_file_exists(self):
         s3 = boto3.client("s3")
         try:
-            s3.head_object(Bucket=bucket_name, Key=file_name)
-            print("File exists.")
+            s3.list_objects_v2(Bucket=self.bucket_name, Prefix=self.prefix)
+            print("Files exists.")
             return True
         except ClientError as e:
             if e.response["Error"]["Code"] == "NoSuchKey":
@@ -189,7 +195,7 @@ class PandaTransformation:
                 print(f"Error occurred: {e}")
             return False
 
-    def returns_dictionary_of_dataframes(self, bucket_name, file_name):
+    def returns_dictionary_of_dataframes(self):
         try:
             transform_currency_data = (
                 PandaTransformation.transform_currency_data
@@ -243,7 +249,7 @@ class PandaTransformation:
             for key, value in initial_output.items():
                 if value is not None:
                     output[key] = value
-            if not self.check_date_file_exists(bucket_name, file_name):
+            if not self.check_date_file_exists():
                 output["dim_date"] = df_date
             return output
         except Exception as e:
