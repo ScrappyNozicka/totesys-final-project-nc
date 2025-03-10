@@ -13,3 +13,5 @@ pydantic  # Data validation
 flake8
 pytest-mock
 moto
+sqlalchemy
+psycopg2
