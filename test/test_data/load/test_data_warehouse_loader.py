@@ -3,14 +3,14 @@ import botocore.exceptions
 import pandas as pd
 import io
 from unittest.mock import MagicMock
-from src.load.load_main_script import DataWarehouseLoader
+from src.load.data_warehouse_loader import DataWarehouseLoader
 
 
 @pytest.fixture
 def mock_loader(mocker):
     """DataWarehouseLoader with mocked dependencies"""
     mocker.patch(
-        "src.load.load_main_script.create_conn", return_value=MagicMock()
+        "src.load.data_warehouse_loader.create_conn", return_value=MagicMock()
     )
     mocker.patch("boto3.client")  # Mock AWS credentials and interactions
     loader = DataWarehouseLoader()
