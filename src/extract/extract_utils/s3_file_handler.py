@@ -16,7 +16,7 @@ class S3FileHandler:
         self, table_name: str, processing_timestamp: str
     ) -> str:
         """
-        Generate filename for new row of data
+        Generate filename for new table
 
         Args:
             table_name (str): Name of the table
@@ -32,7 +32,7 @@ class S3FileHandler:
         self, file_data, table_name: str, processing_timestamp: str
     ):
         """
-        Load table row as a new file into S3 bucket
+        Load table as a new file into S3 bucket
         Args:
             file_data : JSON to upload
             table_name (str): Name of table
@@ -78,8 +78,8 @@ class S3FileHandler:
                 return response["Body"].read().decode("utf-8").strip()
         except botocore.exceptions.ClientError as e:
             if e.response["Error"]["Code"] == "NoSuchKey":
-                return None
+                print(f"INFO: {e}")
         except Exception as e:
             # TODO: Replace with proper logging if needed
             print(f"Unexpected error fetching last timestamp: {e}")
-            raise
+        return None
