@@ -193,7 +193,7 @@ class PandaTransformation:
                 print("File does not exist.")
             else:
                 print(f"Error occurred: {e}")
-            return False
+        return False
 
     def returns_dictionary_of_dataframes(self):
         try:
@@ -230,12 +230,12 @@ class PandaTransformation:
             print("created df_sales_order")
             print(df_sales_order)
 
-            if df_sales_order is not None and not df_sales_order.empty:
+            if self.check_date_file_exists():
+                df_date = None
+            else:
                 transform_date_data = PandaTransformation.transform_date_data
                 df_date = transform_date_data(self)
                 print("created df_date")
-            else:
-                df_date = None
 
             initial_output = {
                 "dim_currency": df_currency,
@@ -244,14 +244,14 @@ class PandaTransformation:
                 "dim_design": df_design,
                 "dim_counterparty": df_counterparty,
                 "fact_sales_order": df_sales_order,
+                "dim_date": df_date,
             }
             output = {}
             for key, value in initial_output.items():
                 if value is not None:
                     output[key] = value
-            if not self.check_date_file_exists():
-                output["dim_date"] = df_date
+
             return output
         except Exception as e:
             print(e)
-            return None
+        return None
