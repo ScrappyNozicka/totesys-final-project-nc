@@ -1,5 +1,7 @@
 import pandas as pd
 import json
+import boto3
+from botocore.exceptions import ClientError
 from transform_utils.ingestion_s3_handler import (
     IngestionS3Handler,
 )
@@ -174,7 +176,20 @@ class PandaTransformation:
             print(f"Error creating dim_date: {e}")
             return None
 
-    def returns_dictionary_of_dataframes(self):
+    def check_date_file_exists(self, bucket_name, file_name):
+        s3 = boto3.client("s3")
+        try:
+            s3.head_object(Bucket=bucket_name, Key=file_name)
+            print("File exists.")
+            return True
+        except ClientError as e:
+            if e.response["Error"]["Code"] == "NoSuchKey":
+                print("File does not exist.")
+            else:
+                print(f"Error occurred: {e}")
+            return False
+
+    def returns_dictionary_of_dataframes(self, bucket_name, file_name):
         try:
             transform_currency_data = (
                 PandaTransformation.transform_currency_data
@@ -223,12 +238,13 @@ class PandaTransformation:
                 "dim_design": df_design,
                 "dim_counterparty": df_counterparty,
                 "fact_sales_order": df_sales_order,
-                "dim_date": df_date,
             }
             output = {}
             for key, value in initial_output.items():
                 if value is not None:
                     output[key] = value
+            if not self.check_date_file_exists(bucket_name, file_name):
+                output["dim_date"] = df_date
             return output
         except Exception as e:
             print(e)
