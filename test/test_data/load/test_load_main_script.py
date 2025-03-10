@@ -1,194 +1,116 @@
 import pytest
-import boto3
-from moto import mock_aws
-from src.load.load_main_script import DataWarehouseLoader
-from unittest.mock import patch, MagicMock
+import botocore.exceptions
 import pandas as pd
 import io
-from sqlalchemy import create_engine, text
+from unittest.mock import MagicMock
+from src.load.load_main_script import DataWarehouseLoader
 
 
 @pytest.fixture
-def s3_mock():
-    """Set up a mocked S3 environment."""
-    with mock_aws():
-        region = "eu-west-2"
-        s3 = boto3.client("s3", region_name=region)
-        bucket_name = "test-processed-bucket"
-
-        # Create the bucket with the region configuration
-        s3.create_bucket(
-            Bucket=bucket_name,
-            CreateBucketConfiguration={"LocationConstraint": region},
-        )
-
-        # Upload a fake timestamp file
-        s3.put_object(
-            Bucket=bucket_name,
-            Key="last_inserted_timestamp.txt",
-            Body=b"2024-03-01 12:00:00:000000",
-        )
-
-        # Upload some fake .parquet files with timestamps in the filename
-        s3.put_object(
-            Bucket=bucket_name,
-            Key="table/2024-03-01_00:00:00:000000.parquet.gzip",
-            Body=b"data",
-        )
-        s3.put_object(
-            Bucket=bucket_name,
-            Key="table/2024-03-02_00:00:00:000000.parquet.gzip",
-            Body=b"data",
-        )
-        s3.put_object(
-            Bucket=bucket_name,
-            Key="table/2024-03-03_00:00:00:000000.parquet.gzip",
-            Body=b"data",
-        )
-
-        yield bucket_name, s3  # Return bucket name and s3 client for testing
-
-
-@pytest.fixture
-def mock_db_engine():
-    """Mock the SQLAlchemy engine and connection."""
-    with patch("sqlalchemy.create_engine") as mock_engine:
-        mock_conn = MagicMock()
-        mock_engine.return_value.connect.return_value = mock_conn
-        yield mock_engine, mock_conn
-
-
-def test_get_last_inserted_timestamp(s3_mock, monkeypatch):
-    """Test retrieving the last inserted timestamp."""
-    bucket_name, _ = s3_mock
-
-    # Mock environment variables
-    monkeypatch.setenv("PROCESSED_S3_BUCKET_NAME", bucket_name)
-
-    loader = DataWarehouseLoader()
-    timestamp = loader.get_last_inserted_timestamp()
-
-    assert timestamp == "2024-03-01 12:00:00:000000"
-
-
-def test_update_last_inserted_timestamp(s3_mock, monkeypatch):
-    """Test updating the last inserted timestamp."""
-    bucket_name, s3 = s3_mock
-
-    # Mock environment variables
-    monkeypatch.setenv("PROCESSED_S3_BUCKET_NAME", bucket_name)
-
-    # Create a DataWarehouseLoader instance
-    loader = DataWarehouseLoader()
-
-    # New timestamp to update
-    new_timestamp = "2024-03-02 15:30:45:000000"
-
-    # Call the method to update the timestamp
-    loader.update_last_inserted_timestamp(new_timestamp)
-
-    # Verify that the put_object method was called with the correct arguments
-    response = s3.get_object(
-        Bucket=bucket_name, Key="last_inserted_timestamp.txt"
+def mock_loader(mocker):
+    """DataWarehouseLoader with mocked dependencies"""
+    mocker.patch(
+        "src.load.load_main_script.create_conn", return_value=MagicMock()
     )
-    updated_timestamp = response["Body"].read().decode("utf-8")
-
-    assert updated_timestamp == new_timestamp
-
-
-def test_get_new_files(s3_mock, monkeypatch):
-    """Test getting new files that have a timestamp later than the last inserted timestamp."""
-    bucket_name, s3 = s3_mock
-
-    # Mock environment variables
-    monkeypatch.setenv("PROCESSED_S3_BUCKET_NAME", bucket_name)
-
-    # Create a DataWarehouseLoader instance
+    mocker.patch("boto3.client")  # Mock AWS credentials and interactions
     loader = DataWarehouseLoader()
-
-    # Provide the last timestamp
-    last_timestamp = "2024-03-02_00:00:00:000000"
-
-    # Call the method to get new files
-    new_files = loader.get_new_files(last_timestamp)
-
-    # Expected files with timestamps after "2024-03-02_00:00:00:000000"
-    expected_files = ["table/2024-03-03_00:00:00:000000.parquet.gzip"]
-
-    # Verify the returned new files
-    assert new_files == expected_files
+    loader.s3_client = MagicMock()
+    return loader
 
 
-@patch("pandas.DataFrame.to_sql")
-def test_insert_file_to_warehouse(mock_to_sql, s3_mock, monkeypatch):
-    """Test inserting data from a Parquet file into the data warehouse."""
-    bucket_name, s3 = s3_mock
+def test_get_last_inserted_timestamp_exists(mock_loader):
+    mock_loader.s3_client.get_object.return_value = {
+        "Body": io.BytesIO(b"2025-03-10 12:34:56:78900")
+    }
 
-    # Mock environment variables
-    monkeypatch.setenv("PROCESSED_S3_BUCKET_NAME", bucket_name)
+    result = mock_loader.get_last_inserted_timestamp()
+    assert (
+        result == "2025-03-10 12:34:56:78900"
+    ), "Should return correct timestamp"
 
-    # Create a DataWarehouseLoader instance
-    loader = DataWarehouseLoader()
 
-    # Mock the Parquet file content
-    parquet_data = pd.DataFrame(
-        {"column1": [1, 2, 3], "column2": ["a", "b", "c"]}
-    )
-    parquet_bytes = io.BytesIO()
-    parquet_data.to_parquet(
-        parquet_bytes, engine="pyarrow", compression="gzip"
-    )
-    parquet_bytes.seek(0)
-
-    # Upload the mock Parquet file to S3
-    file_key = "table/2024-03-03_00:00:00:000000.parquet.gzip"
-    s3.put_object(
-        Bucket=bucket_name, Key=file_key, Body=parquet_bytes.getvalue()
+def test_get_last_inserted_timestamp_no_file(mock_loader):
+    mock_loader.s3_client.get_object.side_effect = (
+        botocore.exceptions.ClientError(
+            {"Error": {"Code": "NoSuchKey"}}, "GetObject"
+        )
     )
 
-    # Call the method to insert the file into the warehouse
-    loader.insert_file_to_warehouse(file_key)
+    result = mock_loader.get_last_inserted_timestamp()
+    assert (
+        result == "0000-00-00 00:00:00:00000"
+    ), "Should return default timestamp if file does not exist"
 
-    # Verify that to_sql was called
+
+def test_get_last_inserted_timestamp_unexpected_error(mock_loader):
+    mock_loader.s3_client.get_object.side_effect = Exception("Unknown error")
+
+    result = mock_loader.get_last_inserted_timestamp()
+    assert result is None, "Should return None if an unexpected error occurs"
+
+
+def test_update_last_inserted_timestamp(mock_loader):
+    mock_loader.update_last_inserted_timestamp("2025-03-10 12:34:56:78900")
+
+    mock_loader.s3_client.put_object.assert_called_once_with(
+        Bucket=mock_loader.processing_bucket,
+        Key="last_inserted_timestamp.txt",
+        Body=b"2025-03-10 12:34:56:78900",
+    )
+
+
+def test_get_new_files(mock_loader):
+    mock_loader.s3_client.list_objects_v2.return_value = {
+        "Contents": [
+            {"Key": "dim_date/2025-03-10.parquet.gzip"},
+            {"Key": "dim_date/2025-03-09.parquet.gzip"},
+        ]
+    }
+
+    result = mock_loader.get_new_files("2025-03-09")
+    assert result == [
+        "dim_date/2025-03-10.parquet.gzip"
+    ], "Should return only newer files"
+
+
+def test_get_new_files_no_files(mock_loader):
+    mock_loader.s3_client.list_objects_v2.return_value = {"Contents": []}
+
+    result = mock_loader.get_new_files("2025-03-09")
+    assert (
+        result == []
+    ), "Should return empty list if no Parquet files are found"
+
+
+def test_insert_file_to_warehouse(mock_loader, mocker):
+    df = pd.DataFrame({"id": [1, 2, 3]})
+    f = io.BytesIO()
+    df.to_parquet(f, index=False)
+    f.seek(0)
+
+    mock_loader.s3_client.get_object.return_value = {"Body": f}
+    mock_to_sql = mocker.patch("pandas.DataFrame.to_sql")
+
+    mock_loader.insert_file_to_warehouse("dim_date/2025-03-10.parquet.gzip")
+
     mock_to_sql.assert_called_once()
 
 
-@patch("pandas.DataFrame.to_sql")
-def test_process_new_files(mock_to_sql, s3_mock, monkeypatch):
-    """Test processing new files and updating the last inserted timestamp."""
-    bucket_name, s3 = s3_mock
-
-    # Mock environment variables
-    monkeypatch.setenv("PROCESSED_S3_BUCKET_NAME", bucket_name)
-
-    # Create a DataWarehouseLoader instance
-    loader = DataWarehouseLoader()
-
-    # Mock the Parquet file content
-    parquet_data = pd.DataFrame(
-        {"column1": [1, 2, 3], "column2": ["a", "b", "c"]}
+def test_process_new_files(mock_loader, mocker):
+    mock_loader.get_last_inserted_timestamp = MagicMock(
+        return_value="2025-03-09"
     )
-    parquet_bytes = io.BytesIO()
-    parquet_data.to_parquet(
-        parquet_bytes, engine="pyarrow", compression="gzip"
+    mock_loader.get_new_files = MagicMock(
+        return_value=["dim_date/2025-03-10.parquet.gzip"]
     )
-    parquet_bytes.seek(0)
+    mock_loader.insert_file_to_warehouse = MagicMock()
+    mock_loader.update_last_inserted_timestamp = MagicMock()
 
-    # Upload the mock Parquet file to S3
-    file_key = "table/2024-03-03_00:00:00:000000.parquet.gzip"
-    s3.put_object(
-        Bucket=bucket_name, Key=file_key, Body=parquet_bytes.getvalue()
+    mock_loader.process_new_files()
+
+    mock_loader.insert_file_to_warehouse.assert_called_once_with(
+        "dim_date/2025-03-10.parquet.gzip"
     )
-
-    # Call the method to process new files
-    loader.process_new_files()
-
-    # Verify that to_sql was called
-    mock_to_sql.assert_called_once()
-
-    # Verify that the last inserted timestamp was updated
-    response = s3.get_object(
-        Bucket=bucket_name, Key="last_inserted_timestamp.txt"
+    mock_loader.update_last_inserted_timestamp.assert_called_once_with(
+        "2025-03-10"
     )
-    updated_timestamp = response["Body"].read().decode("utf-8")
-    assert updated_timestamp == "2024-03-03_00:00:00:000000"
