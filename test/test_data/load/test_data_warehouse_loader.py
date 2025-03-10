@@ -85,7 +85,7 @@ def test_get_new_files_no_files(mock_loader):
 def test_insert_file_to_warehouse(mock_loader, mocker):
     df = pd.DataFrame({"id": [1, 2, 3]})
     f = io.BytesIO()
-    df.to_parquet(f, index=False)
+    df.to_parquet(f, index=False, engine="fastparquet")
     f.seek(0)
 
     mock_loader.s3_client.get_object.return_value = {"Body": f}

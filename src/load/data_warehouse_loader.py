@@ -2,7 +2,7 @@ import boto3
 import os
 from dotenv import load_dotenv
 import botocore.exceptions
-from src.load.warehouse_connection import create_conn
+from warehouse_connection import create_conn
 import pandas as pd
 import io
 
@@ -54,7 +54,7 @@ class DataWarehouseLoader:
         """Load data from a Parquet file in S3 into the data warehouse."""
         try:
             response = self.s3_client.get_object(Bucket=self.processing_bucket, Key=file_key)
-            data = pd.read_parquet(io.BytesIO(response["Body"].read()), engine="pyarrow")   
+            data = pd.read_parquet(io.BytesIO(response["Body"].read()), engine="fastparquet")   
             table_name = file_key.split("/")[0]
 
             data.to_sql(table_name, self.engine, if_exists='append', index=False, chunksize=1000)

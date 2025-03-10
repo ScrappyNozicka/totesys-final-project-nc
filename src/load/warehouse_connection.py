@@ -2,8 +2,6 @@ from sqlalchemy import create_engine
 import os
 from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv()
 
 def create_conn():
     """Creates and returns a database engine using SQLAlchemy"""

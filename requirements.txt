@@ -2,7 +2,7 @@ boto3
 awscli
 pg8000
 pandas
-pyarrow  # parquet file handling
+fastparquet  # parquet file handling
 
 watchtower  # Sends logs to AWS CloudWatch
 logging
