@@ -178,11 +178,12 @@ resource "aws_iam_policy" "secretsmanager_policy" {
  })
 }
 
-
-resource "aws_iam_role_policy_attachment" "attach_secrets_policy" {
+resource "aws_iam_policy_attachment" "attach_secrets_policy" {
+ name = "secret_policy_attachment"
  policy_arn = aws_iam_policy.secretsmanager_policy.arn
- role       = aws_iam_role.extract_iam.name
+ roles       = [aws_iam_role.extract_iam.name, aws_iam_role.load_iam.name]
 }
+
 
 resource "aws_iam_role" "transform_iam" {
   name               = "transform-iam"

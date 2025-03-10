@@ -33,3 +33,7 @@ variable "processed_bucket" {
   default = "processed-bucket-ketts-lough"
 }
 
+variable "python_runtime" {
+  type    = string
+  default = "python3.12"
+}
