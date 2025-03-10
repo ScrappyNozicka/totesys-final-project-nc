@@ -13,8 +13,9 @@ class PandaTransformation:
 
     def __init__(self):
         load_dotenv()
-        self.bucket_name = os.getenv("S3_BUCKET_NAME")
-        self.prefix = os.getenv("S3_FOLDER")
+        self.ingestion_bucket_name = os.getenv("S3_BUCKET_NAME")
+        self.processed_bucket_name = os.getenv("PROCESSED_S3_BUCKET_NAME")
+        self.dim_date_prefix = "dim_date/"
         self.s3_client = boto3.client("s3")
         self.ingestion_handler = IngestionS3Handler()
         self.raw_data = self.ingestion_handler.get_data_from_ingestion()
@@ -183,9 +184,10 @@ class PandaTransformation:
             return None
 
     def check_date_file_exists(self):
-        s3 = boto3.client("s3")
         try:
-            s3.list_objects_v2(Bucket=self.bucket_name, Prefix=self.prefix)
+            self.s3_client.list_objects_v2(
+                Bucket=self.processed_bucket_name, Prefix=self.dim_date_prefix
+            )
             print("Files exists.")
             return True
         except ClientError as e:
