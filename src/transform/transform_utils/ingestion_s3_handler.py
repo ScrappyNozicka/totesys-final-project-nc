@@ -19,6 +19,7 @@ class IngestionS3Handler:
         self.s3_client = boto3.client("s3")
 
     def get_last_timestamp(self) -> str | None:
+        """Retrieve the last inserted timestamp from S3."""
         try:
             response = self.s3_client.get_object(
                 Bucket=self.bucket_name, Key="last_timestamp.txt"
@@ -50,6 +51,16 @@ class IngestionS3Handler:
         return f"{table_name}/{timestamp_file}.json"
 
     def get_table_content(self, file_name: str):
+        """
+        Retrieve table content
+
+        Args:
+            table_name (str): Name of the table
+            file_name (str): Name of file returned by function get_file_name
+
+        Returns:
+            Body of Filename
+        """
         try:
             response = self.s3_client.get_object(
                 Bucket=self.bucket_name, Key=file_name
@@ -65,6 +76,15 @@ class IngestionS3Handler:
         return None
 
     def get_full_table(self, table_name):
+        """
+        Retrieve full table content
+
+        Args:
+            table_name (str): Name of the table
+
+        Returns:
+            List: Table information
+        """
         try:
             table = table_name.split("_")[0]
             files = self.s3_client.list_objects_v2(
@@ -97,6 +117,12 @@ class IngestionS3Handler:
         return None
 
     def get_data_from_ingestion(self):
+        """
+        Retrieve data from Ingestion Handler
+
+        Returns:
+            Dict: Result
+        """
         table_names = [
             "counterparty",
             "currency",

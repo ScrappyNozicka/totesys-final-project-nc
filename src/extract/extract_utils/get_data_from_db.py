@@ -1,4 +1,9 @@
 from connection import create_conn
+import logging
+
+logging.basicConfig(
+    level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
 
 class ConnectionError(Exception):
@@ -40,6 +45,7 @@ def get_data_from_db(
 
     try:
         db = create_conn()
+        logging.info("Connection to database successful")
         table_names = [
             "counterparty",
             "currency",
@@ -68,6 +74,7 @@ def get_data_from_db(
         where_clause = (
             f"WHERE {' AND '.join(conditions)}" if conditions else ""
         )
+        logging.info("Data access conditions created successfully")
 
         for table_name in table_names:
             query_str = SELECT_FROM_TABLE_SQL.format(
@@ -80,14 +87,15 @@ def get_data_from_db(
             ]
 
             result[table_name] = table_data
+            logging.info("Data successfully retrieved from database")
 
-    except Exception as err:
-        # TODO: swap print for proper logging
-        print("Error: Database connection not found", err)
+    except Exception as e:
+        logging.error(f"ERROR: Database connection not found due to {e}")
         raise ConnectionError
 
     finally:
         if db:
             db.close()
-
+            logging.info("Database closed")
+    logging.info("Data from database successfully retrieved")
     return result

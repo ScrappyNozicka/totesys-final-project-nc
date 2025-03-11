@@ -51,7 +51,7 @@ class DataWarehouseLoader:
             logging.info("File list returned successfully.")
             return [f for f in files if f.split("/")[-1].replace(".parquet.gzip", "") > last_timestamp]
         except Exception as e:
-            logging.error(f"Error fetching file list: {e}")
+            logging.error(f"ERROR: Unable to fetch file list: {e}")
             return []
         
     def insert_file_to_warehouse(self, file_key: str):
@@ -65,7 +65,7 @@ class DataWarehouseLoader:
             logging.info(f"Inserted {len(data)} rows into {table_name}.")
 
         except Exception as e:
-            logging.error(f"Error inserting data for {file_key}: {e}")
+            logging.error(f"ERROR: Unable to insert data for {file_key}: {e}")
             return None
         
     def process_new_files(self):

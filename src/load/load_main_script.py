@@ -15,10 +15,19 @@ def get_secret():
       secret = json.loads(response["SecretString"])
       return secret
   except Exception as e:
-       logging.error(f"Unable to obtain secrets: {e}")
+       logging.error(f"ERROR: Unable to obtain secrets: {e}")
        raise
 
 def load_main_script(event, context):
+    """
+    Main script for Load Phase.
+    It takes data from S3 Bucket and saves it to final database called Postgres.
+  
+    Requirements(.env):
+       - DB connection credentials
+       - AWS credentials
+       - Bucket Name
+    """
     try:
         secrets = get_secret()
         os.environ["DW_USER"] = secrets["DW_USER"]
@@ -35,5 +44,5 @@ def load_main_script(event, context):
         return {"message":"Updated successfully"}
 
     except Exception as e:
-       logging.error(f"ERROR - Update failed:{e}")
+       logging.error(f"ERROR: Update failed:{e}")
        return {"message": "Update failed"}
