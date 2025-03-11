@@ -55,7 +55,7 @@ class IngestionS3Handler:
                 Bucket=self.bucket_name, Key=file_name
             )
             if "Body" in response:
-                logging.info(f"Data in table retrieved successfully")
+                logging.info("Data in table retrieved successfully")
                 return response["Body"].read().decode("utf-8")
         except botocore.exceptions.ClientError as e:
             if e.response["Error"]["Code"] == "NoSuchKey":

@@ -188,7 +188,7 @@ class PandaTransformation:
             dim_date["day_name"] = dim_date["date_id"].dt.strftime("%A")
             dim_date["month_name"] = dim_date["date_id"].dt.strftime("%B")
             dim_date["quarter"] = dim_date["date_id"].dt.quarter
-            logging.info(f"Date data obtained successfully")
+            logging.info("Date data obtained successfully")
             return dim_date
 
         except Exception as e:
@@ -270,7 +270,7 @@ class PandaTransformation:
             for key, value in initial_output.items():
                 if value is not None:
                     output[key] = value
-            logging.info(f"Data successfully collected")
+            logging.info("Data successfully collected")
             return output
         except Exception as e:
             logging.info(f"Data unable to be collected due to {e}")
