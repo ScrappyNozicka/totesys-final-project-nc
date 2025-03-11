@@ -80,6 +80,7 @@ class ProcessedS3Handler:
             return {"Error": str(e)}
 
     def save_last_timestamp(self, timestamp: str):
+        """Save the last timestamp to S3."""
         try:
             self.s3_client.put_object(
                 Body=timestamp,

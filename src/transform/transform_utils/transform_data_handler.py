@@ -26,6 +26,12 @@ class PandaTransformation:
         self.raw_data = self.ingestion_handler.get_data_from_ingestion()
 
     def transform_currency_data(self):
+        """
+        Transforms currency data to match final database dimensions
+
+        Returns:
+            Dataframe: Currency data
+        """
         try:
             with open("currencies_lookup.json", "r") as file:
                 currencies_lookup = json.load(file)
@@ -37,13 +43,19 @@ class PandaTransformation:
             df_currency["currency_name"] = df_currency["currency_code"].map(
                 currencies_lookup
             )
-            logging.info("Currency data obtained successfully")
+            logging.info("Currency data transformed successfully")
             return df_currency
         except Exception as e:
-            logging.info(f"Unable to obtain currency data due to {e}")
+            logging.info(f"Unable to transform currency data due to {e}")
             return None
 
     def transform_location_data(self):
+        """
+        Transforms location data to match final database dimensions
+
+        Returns:
+            Dataframe: Location data
+        """
         try:
             df_location = pd.DataFrame(self.raw_data["address"])
             del df_location["created_at"]
@@ -51,13 +63,19 @@ class PandaTransformation:
             df_location.rename(
                 columns={"address_id": "location_id"}, inplace=True
             )
-            logging.info("Location data obtained successfully")
+            logging.info("Location data transformed successfully")
             return df_location
         except Exception as e:
-            logging.info(f"Unable to obtain location data due to {e}")
+            logging.info(f"Unable to transform location data due to {e}")
             return None
 
     def transform_staff_data(self):
+        """
+        Transforms staff data to match final database dimensions
+
+        Returns:
+            Dataframe: Staff data
+        """
         try:
             df_staff = pd.DataFrame(self.raw_data["staff"])
             del df_staff["created_at"]
@@ -70,7 +88,7 @@ class PandaTransformation:
             del merged_df["manager"]
             del merged_df["created_at"]
             del merged_df["last_updated"]
-            logging.info("Staff data obtained successfully")
+            logging.info("Staff data transformed successfully")
             return merged_df[
                 [
                     "staff_id",
@@ -82,21 +100,33 @@ class PandaTransformation:
                 ]
             ]
         except Exception as e:
-            logging.info(f"Unable to obtain staff data due to {e}")
+            logging.info(f"Unable to transform staff data due to {e}")
             return None
 
     def transform_design_data(self):
+        """
+        Transforms design data to match final database dimensions
+
+        Returns:
+            Dataframe: Design data
+        """
         try:
             df_design = pd.DataFrame(self.raw_data["design"])
             del df_design["created_at"]
             del df_design["last_updated"]
-            logging.info("Design data obtained successfully")
+            logging.info("Design data transformed successfully")
             return df_design
         except Exception as e:
-            logging.info(f"Unable to obtain design data due to {e}")
+            logging.info(f"Unable to transform design data due to {e}")
             return None
 
     def transform_counterparty_data(self):
+        """
+        Transforms counterparty data to match final database dimensions
+
+        Returns:
+            Dataframe: Counterparty data
+        """
         try:
             df_counterparty = pd.DataFrame(self.raw_data["counterparty"])
             del df_counterparty["created_at"]
@@ -120,7 +150,7 @@ class PandaTransformation:
                 },
                 inplace=True,
             )
-            logging.info("Counterparty data obtained successfully")
+            logging.info("Counterparty data transformed successfully")
             return merged_df[
                 [
                     "counterparty_id",
@@ -135,10 +165,16 @@ class PandaTransformation:
                 ]
             ]
         except Exception as e:
-            logging.info(f"Unable to obtain counterparty data due to {e}")
+            logging.info(f"Unable to transform counterparty data due to {e}")
             return None
 
     def transform_sales_order_data(self):
+        """
+        Transforms sales order data to match final database dimensions
+
+        Returns:
+            Dataframe: Sales order data
+        """
         try:
             df_sales_order = pd.DataFrame(self.raw_data["sales_order"])
             df_sales_order[["created_date", "created_time"]] = df_sales_order[
@@ -170,10 +206,16 @@ class PandaTransformation:
                 ]
             ]
         except Exception as e:
-            logging.info(f"Unable to obtain sales order data due to {e}")
+            logging.info(f"Unable to transform sales order data due to {e}")
             return None
 
     def transform_date_data(self):
+        """
+        Obtains date data matching final database dimensions
+
+        Returns:
+            Dataframe: Date data
+        """
         try:
             start_date = "2022-01-01"
             end_date = "2047-12-31"
@@ -196,6 +238,12 @@ class PandaTransformation:
             return None
 
     def check_date_file_exists(self):
+        """
+        Checks whether date file exists in the Processed S3 Bucket
+
+        Returns:
+            Boolean
+        """
         try:
             response = self.s3_client.list_objects_v2(
                 Bucket=self.processed_bucket_name, Prefix=self.dim_date_prefix
@@ -216,6 +264,12 @@ class PandaTransformation:
             return False
 
     def returns_dictionary_of_dataframes(self):
+        """
+        Collects dataframes into one dictionary
+
+        Returns:
+            Dict: Dataframes
+        """
         try:
             transform_currency_data = (
                 PandaTransformation.transform_currency_data

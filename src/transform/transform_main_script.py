@@ -6,7 +6,15 @@ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %
 
 
 def transform_main_script(event, context):
-    
+    """
+   Main script for Transform Phase.
+   It tranforms the Data in the Ingestion S3 Bucket.
+   Afterwards, uploads the transformed data to the Processed S3 Bucket
+  
+   Requirements(.env):
+       - AWS credentials
+       - Bucket Names
+   """
     try:
         processed_s3_handler = ProcessedS3Handler()
         panda_transform = PandaTransformation()
@@ -21,6 +29,6 @@ def transform_main_script(event, context):
         return {"message":"Updated successfully"}
 
     except Exception as e:
-       logging.error(f"ERROR - Update failed:{e}")
+       logging.error(f"ERROR: Update failed:{e}")
        return {"message": "Update failed"}
     
