@@ -17,7 +17,7 @@ def create_conn():
     return create_engine(db_url)
 
 
-
+# load_dotenv()
 # db = create_conn()
 
 # with db.connect() as conn:
@@ -31,7 +31,7 @@ def create_conn():
 
 #     conn.commit() 
 
-    #result = conn.execute(text("SELECT * FROM dim_date"))
+    # result = conn.execute(text("SELECT * FROM dim_date"))
     
-    #print(result.fetchall()) 
+    # print(result.fetchall()) 
     
