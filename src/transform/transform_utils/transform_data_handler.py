@@ -273,5 +273,5 @@ class PandaTransformation:
             logging.info("Data successfully collected")
             return output
         except Exception as e:
-            logging.info(f"Data unable to be collected due to {e}")
+            logging.error(f"ERROR: Data unable to be collected due to {e}")
         return None
