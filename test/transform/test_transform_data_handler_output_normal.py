@@ -79,8 +79,8 @@ def test_returns_dictionary_of_dataframes_even_when_one_is_empty(
         "dim_staff",
         "dim_design",
         "dim_counterparty",
-        "fact_sales_order",
         "dim_date",
+        "fact_sales_order",
     ]
 
     assert len(result.keys()) == 7

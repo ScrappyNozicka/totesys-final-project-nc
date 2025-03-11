@@ -185,17 +185,25 @@ class PandaTransformation:
 
     def check_date_file_exists(self):
         try:
-            self.s3_client.list_objects_v2(
+            response = self.s3_client.list_objects_v2(
                 Bucket=self.processed_bucket_name, Prefix=self.dim_date_prefix
             )
-            print("Files exists.")
-            return True
-        except ClientError as e:
+            print(response)
+            if "Contents" in response:
+                print("Files exists.")
+                print(response["Contents"])
+                return True
+            else:
+                print("File does not exist.")
+                return False
+        except (
+            ClientError
+        ) as e:  # it needs checking if list_objects ever raises this error
             if e.response["Error"]["Code"] == "NoSuchKey":
                 print("File does not exist.")
             else:
                 print(f"Error occurred: {e}")
-        return False
+            return False
 
     def returns_dictionary_of_dataframes(self):
         try:
@@ -233,8 +241,10 @@ class PandaTransformation:
             print(df_sales_order)
 
             if self.check_date_file_exists():
+                print(self.check_date_file_exists())
                 df_date = None
             else:
+                print(self.check_date_file_exists())
                 transform_date_data = PandaTransformation.transform_date_data
                 df_date = transform_date_data(self)
                 print("created df_date")
@@ -245,8 +255,8 @@ class PandaTransformation:
                 "dim_staff": df_staff,
                 "dim_design": df_design,
                 "dim_counterparty": df_counterparty,
-                "fact_sales_order": df_sales_order,
                 "dim_date": df_date,
+                "fact_sales_order": df_sales_order,
             }
             output = {}
             for key, value in initial_output.items():
