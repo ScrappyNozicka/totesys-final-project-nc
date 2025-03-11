@@ -5,6 +5,8 @@ import botocore.exceptions
 from warehouse_connection import create_conn
 import pandas as pd
 import io
+import logging
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
 
@@ -23,13 +25,14 @@ class DataWarehouseLoader:
         try:
             response = self.s3_client.get_object(Bucket=self.processing_bucket, Key=self.timestamp_file_key)
             if "Body" in response:
+                logging.info("Last timestamp has been found.")
                 return response["Body"].read().decode("utf-8").strip()
         except botocore.exceptions.ClientError as e:
             if e.response["Error"]["Code"] == "NoSuchKey":
-                print("No previous timestamp found, assuming first run.")
+                logging.info("No previous timestap found, assuming first fun.")
                 return "0000-00-00 00:00:00:00000" 
         except Exception as e:
-            print(f"Unexpected error fetching  timestamp: {e}")
+            logging.info(f"Unexpected error fetching timestamp: {e}")
         return None
     
 
@@ -45,9 +48,10 @@ class DataWarehouseLoader:
         try:
             response = self.s3_client.list_objects_v2(Bucket=self.processing_bucket)
             files = [obj["Key"] for obj in response.get("Contents", []) if obj["Key"].endswith(".parquet.gzip")]
+            logging.info("File list returned successfully.")
             return [f for f in files if f.split("/")[-1].replace(".parquet.gzip", "") > last_timestamp]
         except Exception as e:
-            print(f"Error fetching file list: {e}")
+            logging.error(f"Error fetching file list: {e}")
             return []
         
     def insert_file_to_warehouse(self, file_key: str):
@@ -58,10 +62,10 @@ class DataWarehouseLoader:
             table_name = file_key.split("/")[0]
 
             data.to_sql(table_name, self.engine, if_exists='append', index=False, chunksize=1000)
-            print(f"Inserted {len(data)} rows into {table_name}.")
+            logging.info(f"Inserted {len(data)} rows into {table_name}.")
 
         except Exception as e:
-            print(f"Error inserting data for {file_key}: {e}")
+            logging.error(f"Error inserting data for {file_key}: {e}")
             return None
         
     def process_new_files(self):
@@ -72,7 +76,7 @@ class DataWarehouseLoader:
        
 
         if not new_files:
-            print("No new data to insert.")
+            logging.info("No new data to insert.")
             return
 
         
@@ -81,7 +85,7 @@ class DataWarehouseLoader:
   
 
         latest_insertion_timestamp = max([f.split("/")[-1].replace(".parquet.gzip", "") for f in new_files])
-        print(f"latest_insertion_timestamp: {latest_insertion_timestamp}")
+        logging.info(f"latest_insertion_timestamp: {latest_insertion_timestamp}")
         self.update_last_inserted_timestamp(latest_insertion_timestamp)
-        print(f"Updated last inserted timestamp to: {latest_insertion_timestamp}")
+        logging.info(f"Updated last inserted timestamp to: {latest_insertion_timestamp}")
 

@@ -2,8 +2,6 @@ from datetime import datetime
 import logging
 from transform_utils.transform_data_handler import PandaTransformation
 from transform_utils.processed_s3_handler import ProcessedS3Handler
-
-#Set up the logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 

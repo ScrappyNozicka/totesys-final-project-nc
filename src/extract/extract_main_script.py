@@ -7,7 +7,6 @@ import boto3
 import os
 import json
 import logging
-#Set up the logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 

@@ -2,10 +2,7 @@ import logging
 import boto3
 import json
 import os
-
 from data_warehouse_loader import DataWarehouseLoader
-
-
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def get_secret():

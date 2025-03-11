@@ -24,6 +24,7 @@ class IngestionS3Handler:
                 Bucket=self.bucket_name, Key="last_timestamp.txt"
             )
             if "Body" in response:
+                logging.info("Last timestamp has been found.")
                 return response["Body"].read().decode("utf-8").strip()
         except botocore.exceptions.ClientError as e:
             if e.response["Error"]["Code"] == "NoSuchKey":
@@ -54,6 +55,7 @@ class IngestionS3Handler:
                 Bucket=self.bucket_name, Key=file_name
             )
             if "Body" in response:
+                logging.info(f"Data in table retrieved successfully")
                 return response["Body"].read().decode("utf-8")
         except botocore.exceptions.ClientError as e:
             if e.response["Error"]["Code"] == "NoSuchKey":
@@ -85,6 +87,7 @@ class IngestionS3Handler:
             df = df.drop_duplicates(subset=f"{table}_id", keep="first")
 
             return_list = df.to_dict("records")
+            logging.info(f"Full table information retrieved for: {table}.")
             return return_list
 
         except botocore.exceptions.ClientError as e:
