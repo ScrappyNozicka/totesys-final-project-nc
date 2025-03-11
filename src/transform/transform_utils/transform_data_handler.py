@@ -1,5 +1,9 @@
 import pandas as pd
 import json
+import os
+import boto3
+from botocore.exceptions import ClientError
+from dotenv import load_dotenv
 from transform_utils.ingestion_s3_handler import (
     IngestionS3Handler,
 )
@@ -8,6 +12,11 @@ from transform_utils.ingestion_s3_handler import (
 class PandaTransformation:
 
     def __init__(self):
+        load_dotenv()
+        self.ingestion_bucket_name = os.getenv("S3_BUCKET_NAME")
+        self.processed_bucket_name = os.getenv("PROCESSED_S3_BUCKET_NAME")
+        self.dim_date_prefix = "dim_date/"
+        self.s3_client = boto3.client("s3")
         self.ingestion_handler = IngestionS3Handler()
         self.raw_data = self.ingestion_handler.get_data_from_ingestion()
 
@@ -174,6 +183,20 @@ class PandaTransformation:
             print(f"Error creating dim_date: {e}")
             return None
 
+    def check_date_file_exists(self):
+        try:
+            self.s3_client.list_objects_v2(
+                Bucket=self.processed_bucket_name, Prefix=self.dim_date_prefix
+            )
+            print("Files exists.")
+            return True
+        except ClientError as e:
+            if e.response["Error"]["Code"] == "NoSuchKey":
+                print("File does not exist.")
+            else:
+                print(f"Error occurred: {e}")
+        return False
+
     def returns_dictionary_of_dataframes(self):
         try:
             transform_currency_data = (
@@ -209,12 +232,12 @@ class PandaTransformation:
             print("created df_sales_order")
             print(df_sales_order)
 
-            if df_sales_order is not None and not df_sales_order.empty:
+            if self.check_date_file_exists():
+                df_date = None
+            else:
                 transform_date_data = PandaTransformation.transform_date_data
                 df_date = transform_date_data(self)
                 print("created df_date")
-            else:
-                df_date = None
 
             initial_output = {
                 "dim_currency": df_currency,
@@ -229,7 +252,8 @@ class PandaTransformation:
             for key, value in initial_output.items():
                 if value is not None:
                     output[key] = value
+
             return output
         except Exception as e:
             print(e)
-            return None
+        return None

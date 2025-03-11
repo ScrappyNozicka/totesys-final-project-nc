@@ -13,6 +13,9 @@ def test_dataframes_dictionary_handles_empty_lists(mocker):
     mocker.patch.object(
         IngestionS3Handler, "get_data_from_ingestion", return_value={}
     )
+    mocker.patch.object(
+        PandaTransformation, "check_date_file_exists", return_value=True
+    )
     test_variable = PandaTransformation()
     result = test_variable.returns_dictionary_of_dataframes()
     expected = {}

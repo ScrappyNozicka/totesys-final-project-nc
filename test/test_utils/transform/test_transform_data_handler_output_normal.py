@@ -64,6 +64,11 @@ def test_returns_dictionary_of_dataframes_even_when_one_is_empty(
         "transform_sales_order_data",
         return_value=pd.DataFrame(mock_sales_order_data),
     )
+    mocker.patch.object(
+        PandaTransformation,
+        "check_date_file_exists",
+        return_value=False,
+    )
 
     test_instance = PandaTransformation()
     result = test_instance.returns_dictionary_of_dataframes()
