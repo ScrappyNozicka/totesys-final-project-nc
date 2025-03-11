@@ -7,6 +7,11 @@ from dotenv import load_dotenv
 from transform_utils.ingestion_s3_handler import (
     IngestionS3Handler,
 )
+import logging
+
+logging.basicConfig(
+    level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
 
 class PandaTransformation:
@@ -32,9 +37,10 @@ class PandaTransformation:
             df_currency["currency_name"] = df_currency["currency_code"].map(
                 currencies_lookup
             )
+            logging.info("Currency data obtained successfully")
             return df_currency
         except Exception as e:
-            print(e)
+            logging.info(f"Unable to obtain currency data due to {e}")
             return None
 
     def transform_location_data(self):
@@ -45,9 +51,10 @@ class PandaTransformation:
             df_location.rename(
                 columns={"address_id": "location_id"}, inplace=True
             )
+            logging.info("Location data obtained successfully")
             return df_location
         except Exception as e:
-            print(e)
+            logging.info(f"Unable to obtain location data due to {e}")
             return None
 
     def transform_staff_data(self):
@@ -63,6 +70,7 @@ class PandaTransformation:
             del merged_df["manager"]
             del merged_df["created_at"]
             del merged_df["last_updated"]
+            logging.info("Staff data obtained successfully")
             return merged_df[
                 [
                     "staff_id",
@@ -74,7 +82,7 @@ class PandaTransformation:
                 ]
             ]
         except Exception as e:
-            print(e)
+            logging.info(f"Unable to obtain staff data due to {e}")
             return None
 
     def transform_design_data(self):
@@ -82,9 +90,10 @@ class PandaTransformation:
             df_design = pd.DataFrame(self.raw_data["design"])
             del df_design["created_at"]
             del df_design["last_updated"]
+            logging.info("Design data obtained successfully")
             return df_design
         except Exception as e:
-            print(e)
+            logging.info(f"Unable to obtain design data due to {e}")
             return None
 
     def transform_counterparty_data(self):
@@ -111,6 +120,7 @@ class PandaTransformation:
                 },
                 inplace=True,
             )
+            logging.info("Counterparty data obtained successfully")
             return merged_df[
                 [
                     "counterparty_id",
@@ -125,7 +135,7 @@ class PandaTransformation:
                 ]
             ]
         except Exception as e:
-            print(e)
+            logging.info(f"Unable to obtain counterparty data due to {e}")
             return None
 
     def transform_sales_order_data(self):
@@ -140,6 +150,7 @@ class PandaTransformation:
             df_sales_order.rename(
                 columns={"staff_id": "sales_staff_id"}, inplace=True
             )
+            logging.info("Sales order data obtained successfully")
             return df_sales_order[
                 [
                     "sales_order_id",
@@ -159,7 +170,7 @@ class PandaTransformation:
                 ]
             ]
         except Exception as e:
-            print(e)
+            logging.info(f"Unable to obtain sales order data due to {e}")
             return None
 
     def transform_date_data(self):
@@ -177,10 +188,11 @@ class PandaTransformation:
             dim_date["day_name"] = dim_date["date_id"].dt.strftime("%A")
             dim_date["month_name"] = dim_date["date_id"].dt.strftime("%B")
             dim_date["quarter"] = dim_date["date_id"].dt.quarter
+            logging.info("Date data obtained successfully")
             return dim_date
 
         except Exception as e:
-            print(f"Error creating dim_date: {e}")
+            logging.error(f"ERROR: Creating dim_date: {e}")
             return None
 
     def check_date_file_exists(self):
@@ -188,21 +200,19 @@ class PandaTransformation:
             response = self.s3_client.list_objects_v2(
                 Bucket=self.processed_bucket_name, Prefix=self.dim_date_prefix
             )
-            print(response)
             if "Contents" in response:
-                print("Files exists.")
-                print(response["Contents"])
+                logging.info(f"Files exist in {self.processed_bucket_name}")
                 return True
             else:
-                print("File does not exist.")
+                logging.info(
+                    f"Files not found in {self.processed_bucket_name}"
+                )
                 return False
-        except (
-            ClientError
-        ) as e:  # it needs checking if list_objects ever raises this error
+        except ClientError as e:
             if e.response["Error"]["Code"] == "NoSuchKey":
-                print("File does not exist.")
+                logging.info("File does not exist.")
             else:
-                print(f"Error occurred: {e}")
+                logging.error(f"ERROR: Unexpected error occurred: {e}")
             return False
 
     def returns_dictionary_of_dataframes(self):
@@ -211,43 +221,41 @@ class PandaTransformation:
                 PandaTransformation.transform_currency_data
             )
             df_currency = transform_currency_data(self)
-            print("created df_currencies")
+            logging.info("Created df_currencies")
 
             transform_location_data = (
                 PandaTransformation.transform_location_data
             )
             df_location = transform_location_data(self)
-            print("created df_location")
+            logging.info("Created df_location")
 
             transform_staff_data = PandaTransformation.transform_staff_data
             df_staff = transform_staff_data(self)
-            print("created df_staff")
+            logging.info("Created df_staff")
 
             transform_design_data = PandaTransformation.transform_design_data
             df_design = transform_design_data(self)
-            print("created df_design")
+            logging.info("Created df_design")
 
             transform_counterparty_data = (
                 PandaTransformation.transform_counterparty_data
             )
             df_counterparty = transform_counterparty_data(self)
-            print("created df_counterparty")
+            logging.info("Created df_counterparty")
 
             transform_sales_order_data = (
                 PandaTransformation.transform_sales_order_data
             )
             df_sales_order = transform_sales_order_data(self)
-            print("created df_sales_order")
-            print(df_sales_order)
+            logging.info("Created df_sales_order")
 
             if self.check_date_file_exists():
-                print(self.check_date_file_exists())
+                logging.info("File found - no new df_date generated")
                 df_date = None
             else:
-                print(self.check_date_file_exists())
                 transform_date_data = PandaTransformation.transform_date_data
                 df_date = transform_date_data(self)
-                print("created df_date")
+                logging.info("File not found - created df_date")
 
             initial_output = {
                 "dim_currency": df_currency,
@@ -262,8 +270,8 @@ class PandaTransformation:
             for key, value in initial_output.items():
                 if value is not None:
                     output[key] = value
-
+            logging.info("Data successfully collected")
             return output
         except Exception as e:
-            print(e)
+            logging.error(f"ERROR: Data unable to be collected due to {e}")
         return None
