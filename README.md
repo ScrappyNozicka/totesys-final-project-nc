@@ -30,9 +30,11 @@ Data platform for extracting, transforming and loading data from ToteSys(Postgre
     - DB_HOST
     - DB_NAME
     - DB_PORT
-    - AWS_ACCESS_KEY_ID
-    - AWS_SECRET_ACCESS_KEY
-    - AWS_DEFAULT_REGION
+    - DW_USER
+    - DW_PASSWORD
+    - DW_HOST
+    - DW_NAME
+    - DW_PORT
 
 ### Installation
 
