@@ -2,7 +2,7 @@ boto3
 awscli
 pg8000
 pandas
-pyarrow  # parquet file handling
+fastparquet  # parquet file handling
 
 watchtower  # Sends logs to AWS CloudWatch
 logging
@@ -13,3 +13,5 @@ pydantic  # Data validation
 flake8
 pytest-mock
 moto
+sqlalchemy
+psycopg2-binary
