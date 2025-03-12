@@ -6,6 +6,9 @@ Data platform for extracting, transforming and loading data from ToteSys(Postgre
 2. Second Lambda takes latest data from Ingestion S3, transforms it into star-schema and stores it in Processed S3
 3. Third Lambda takes processed data and loads it into Data Warehouse
 
+##
+![image](https://github.com/user-attachments/assets/abad6893-4f57-4dc9-b38f-5d8ab474ac47)
+##
 
 ## Technologies used
 - **Python:** Version 3.12
