@@ -1,10 +1,5 @@
 # ToteSys Final Project
 
-##
-[![Video Presentation](https://img.youtube.com/vi/11XjCIIYqs/0.jpg)](https://www.youtube.com/watch?v=11XjCIIYqs)
-##
-
-
 ## Description
 Data platform for extracting, transforming and loading data from ToteSys(Postgres Database) into a Data Warehouse hosted on AWS. The system runs on a 30-minute schedule:
 1. First Lambda extracts data from ToteSys and stores it into Ingestion S3
